@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Dashboard - ZeroWaste</title>
+
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+
+<body>
+
+    <!-- =========================
+         DASHBOARD
+    ========================== -->
+
+    <div class="dashboard-page">
+
+
+        <!-- =========================
+             HEADER
+        ========================== -->
+
+        <div class="dashboard-header">
+
+            <div>
+
+                <h1>
+                    🌱 ZeroWaste
+                </h1>
+
+                <p class="dashboard-subtitle">
+                    Smart Food Management & Waste Reduction
+                </p>
+
+            </div>
+
+
+            <button
+                class="logout-btn"
+                onclick="logoutUser()">
+
+                Logout
+
+            </button>
+
+        </div>
+
+
+
+        <!-- =========================
+             WELCOME
+        ========================== -->
+
+        <div class="welcome-section">
+
+            <h2 id="welcomeMessage">Welcome!</h2>
+
+            <p id="roleMessage">
+                Your ZeroWaste dashboard
+            </p>
+
+            <p class="dashboard-tagline">
+                🌱 Reduce food waste. Share surplus. Build a sustainable community.
+            </p>
+
+        </div>
+
+
+
+        <!-- =========================
+             STATISTICS
+        ========================== -->
+
+        <div class="dashboard-stats" id="householdStatsSection">
+
+
+            <!-- Food Items -->
+
+            <div class="stat-card">
+
+                <div class="stat-icon">
+                    🍎
+                </div>
+
+                <div>
+
+                    <h3 id="foodCount">
+                        0
+                    </h3>
+
+                    <p>
+                        Food Items
+                    </p>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- Expiring Soon -->
+
+            <div class="stat-card">
+
+                <div class="stat-icon">
+                    ⏰
+                </div>
+
+                <div>
+
+                    <h3 id="expiryCount">
+                        0
+                    </h3>
+
+                    <p>
+                        Expiring Soon
+                    </p>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- Donations -->
+
+            <div class="stat-card">
+
+                <div class="stat-icon">
+                    🤝
+                </div>
+
+                <div>
+
+                    <h3 id="donationCount">
+                        0
+                    </h3>
+
+                    <p>
+                        Donations
+                    </p>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- Food Saved -->
+
+            <div class="stat-card">
+
+                <div class="stat-icon">
+                    ♻️
+                </div>
+
+                <div>
+
+                    <h3>
+                        0 kg
+                    </h3>
+
+                    <p>
+                        Food Saved
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- =========================
+             ADD FOOD
+        ========================== -->
+
+        <div class="food-section" id="householdFoodSection">
+
+            <div class="section-title">
+
+                <div>
+
+                    <h2>
+                        🍎 Add Food
+                    </h2>
+
+                    <p>
+                        Add food items to your household inventory.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <form
+                class="food-form"
+                onsubmit="saveFood(event)">
+
+
+                <!-- Food Name -->
+
+                <div class="form-group">
+
+                    <label for="foodName">
+                        Food Name
+                    </label>
+
+                    <input
+                        type="text"
+                        id="foodName"
+                        placeholder="Example: Rice"
+                        required>
+
+                </div>
+
+
+                <!-- Quantity -->
+
+                <div class="form-group">
+
+                    <label for="foodQuantity">
+                        Quantity
+                    </label>
+
+                    <input
+                        type="number"
+                        id="foodQuantity"
+                        placeholder="Example: 2"
+                        min="0.1"
+                        step="0.1"
+                        required>
+
+                </div>
+
+
+                <!-- Unit -->
+
+                <div class="form-group">
+
+                    <label for="foodUnit">
+                        Unit
+                    </label>
+
+                    <select
+                        id="foodUnit"
+                        required>
+
+                        <option value="">
+                            Select unit
+                        </option>
+
+                        <option value="kg">
+                            Kilogram (kg)
+                        </option>
+
+                        <option value="g">
+                            Gram (g)
+                        </option>
+
+                        <option value="litre">
+                            Litre
+                        </option>
+
+                        <option value="ml">
+                            Millilitre
+                        </option>
+
+                        <option value="packet">
+                            Packet
+                        </option>
+
+                        <option value="pieces">
+                            Pieces
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- Expiry Date -->
+
+                <div class="form-group">
+
+                    <label for="foodExpiry">
+                        Expiry Date
+                    </label>
+
+                    <input
+                        type="date"
+                        id="foodExpiry"
+                        required>
+
+                </div>
+
+
+                <!-- Add Button -->
+
+                <div class="form-group button-group">
+
+                    <button
+                        type="submit"
+                        class="add-food-btn">
+
+                        ➕ Add Food
+
+                    </button>
+
+                </div>
+
+
+            </form>
+
+        </div>
+
+
+
+        <!-- =========================
+             FOOD INVENTORY
+        ========================== -->
+
+        <div class="inventory-section" id="householdInventorySection">
+
+            <div class="section-title">
+
+                <div>
+
+                    <h2>
+                        📦 My Food Inventory
+                    </h2>
+
+                    <p>
+                        Track your food and expiry dates.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="inventory-table-container">
+
+                <table class="inventory-table">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                Food
+                            </th>
+
+                            <th>
+                                Quantity
+                            </th>
+
+                            <th>
+                                Expiry Date
+                            </th>
+
+                            <th>
+                                Status
+                            </th>
+
+                            <th>
+                                Action
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody id="foodInventory">
+
+                        <!-- Food items will appear here -->
+
+                    </tbody>
+
+                </table>
+
+
+                <div
+                    id="emptyInventory"
+                    class="empty-inventory">
+
+                    🍎 No food items added yet.
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+<!-- =========================
+     AI EXPIRY ALERT
+========================= -->
+
+<div class="ai-alert-section" id="householdAISection">
+
+    <div class="ai-alert-header">
+
+        <div class="ai-icon">
+            🤖
+        </div>
+
+        <div>
+
+            <h2>
+                ZeroWaste Assistant
+            </h2>
+
+            <p>
+                Smart suggestions based on your food inventory
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- AI Message -->
+
+    <div
+        id="aiSuggestionBox"
+        class="ai-suggestion-box">
+
+        <h3>
+            🤖 Checking your food inventory...
+        </h3>
+
+        <p>
+            ZeroWaste is analyzing your food items.
+        </p>
+
+    </div>
+
+
+    <!-- Expiry Alerts -->
+
+    <div class="expiry-alert-container">
+
+        <h3>
+            ⚠️ Expiry Alerts
+        </h3>
+
+        <div id="expiryAlerts">
+
+            <!-- Alerts will appear here -->
+
+        </div>
+
+    </div>
+
+</div>
+        <!-- =========================
+             MAIN FEATURES
+        ========================== -->
+
+        <div class="dashboard-options">
+
+
+            <!-- Donations -->
+
+            <div class="dashboard-card" id="donationsShortcutCard">
+
+                <div class="card-icon">
+                    🤝
+                </div>
+
+                <h2>
+                    Donations
+                </h2>
+
+                <p>
+                    Donate surplus food and help
+                    reduce food waste.
+                </p>
+
+                <button
+                    class="dashboard-action"
+                    onclick="openDonations()">
+
+                    View Donations
+
+                </button>
+
+            </div>
+
+
+
+            <!-- AI Suggestions -->
+
+            <div class="dashboard-card" id="aiShortcutCard">
+
+                <div class="card-icon">
+                    🤖
+                </div>
+
+                <h2>
+                    AI Suggestions
+                </h2>
+
+                <p>
+                    Get smart suggestions to reduce
+                    food waste.
+                </p>
+
+                <button
+                    class="dashboard-action"
+                    onclick="showAISuggestion()">
+
+                    Ask ZeroWaste
+
+                </button>
+
+            </div>
+
+
+
+            <!-- Food Information -->
+
+            <div class="dashboard-card">
+
+                <div class="card-icon">
+                    ♻️
+                </div>
+
+                <h2>
+                    Save Food
+                </h2>
+
+                <p>
+                    Use your inventory to prevent
+                    food from being wasted.
+                </p>
+
+                <button
+                    class="dashboard-action"
+                    onclick="showFoodTip()">
+
+                    Food Saving Tip
+
+                </button>
+
+            </div>
+
+
+        </div>
+
+
+        <!-- =========================
+     FOOD DONATION
+========================= -->
+
+<div class="donation-section">
+
+    <div class="donation-header">
+
+        <div class="donation-icon">
+            🤝
+        </div>
+
+        <div>
+
+            <h2>
+                Donate Surplus Food
+            </h2>
+
+            <p>
+                Share extra food with people who need it
+                and help reduce food waste.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- Donation Form -->
+
+    <div class="donation-form-container">
+
+        <h3>
+            Create a Food Donation
+        </h3>
+
+
+        <form onsubmit="submitDonation(event)">
+
+
+            <!-- Food Selection -->
+
+            <div class="form-group">
+
+                <label for="donationFood">
+                    Select Food
+                </label>
+
+                <select
+                    id="donationFood"
+                    required>
+
+                    <option value="">
+                        Choose food from your inventory
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- Quantity -->
+
+            <div class="form-row">
+
+                <div class="form-group">
+
+                    <label for="donationQuantity">
+                        Quantity
+                    </label>
+
+                    <input
+                        type="number"
+                        id="donationQuantity"
+                        min="1"
+                        placeholder="Enter quantity"
+                        required>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="donationUnit">
+                        Unit
+                    </label>
+
+                    <select
+                        id="donationUnit"
+                        required>
+
+                        <option value="">
+                            Select unit
+                        </option>
+
+                        <option value="kg">
+                            Kilogram (kg)
+                        </option>
+
+                        <option value="grams">
+                            Grams
+                        </option>
+
+                        <option value="litres">
+                            Litres
+                        </option>
+
+                        <option value="packets">
+                            Packets
+                        </option>
+
+                        <option value="pieces">
+                            Pieces
+                        </option>
+
+                    </select>
+
+                </div>
+
+            </div>
+
+
+            <!-- Pickup Location -->
+
+            <div class="form-group">
+
+                <label for="donationLocation">
+                    Pickup Location
+                </label>
+
+                <input
+                    type="text"
+                    id="donationLocation"
+                    placeholder="Enter pickup location"
+                    required>
+
+            </div>
+
+
+            <!-- Description -->
+
+            <div class="form-group">
+
+                <label for="donationDescription">
+                    Description
+                </label>
+
+                <textarea
+                    id="donationDescription"
+                    rows="4"
+                    placeholder="Add information about the food..."
+                ></textarea>
+
+            </div>
+
+            <!-- Food Photo -->
+
+<div class="form-group">
+
+    <label for="donationPhoto">
+        📷 Food Photo
+    </label>
+
+    <input
+        type="file"
+        id="donationPhoto"
+        accept="image/*"
+        onchange="previewDonationPhoto()">
+
+    <p class="photo-help">
+        Add a clear photo of the food you are donating.
+    </p>
+
+    <div
+        id="donationPhotoPreview"
+        class="donation-photo-preview">
+    </div>
+
+</div>
+
+
+            <!-- Submit -->
+
+            <button
+                type="submit"
+                class="donation-submit-btn">
+
+                🤝 Donate Food
+
+            </button>
+
+
+        </form>
+
+    </div>
+
+
+    <!-- Donation List -->
+
+    <div class="my-donations">
+
+        <h3>
+            📦 My Donations
+        </h3>
+
+        <div id="donationList">
+
+            <p class="empty-donations">
+                You have not donated any food yet.
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+                <!-- =========================
+            ROLE BASED FEATURES
+        ========================= -->
+
+        <div id="householdFeatures" class="role-feature-section">
+
+            <h2>🏠 Household Features</h2>
+
+            <p>
+                Manage your household food, reduce waste,
+                and donate surplus food.
+            </p>
+
+        </div>
+
+
+        <div id="farmerFeatures" class="role-feature-section">
+
+            <div class="role-feature-header">
+
+                <div class="role-feature-icon">
+                    🌾
+                </div>
+
+                <div>
+
+                    <h2>Farmer Dashboard</h2>
+
+                    <p>
+                        Manage unsold crops and connect
+                        with people and NGOs.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="farmer-actions">
+
+                <button
+                    class="dashboard-action"
+                    onclick="openFarmerCropForm()">
+
+                    🌾 Add Unsold Crop
+
+                </button>
+
+
+                <button
+                    class="dashboard-action"
+                    onclick="showFarmerCrops()">
+
+                    📦 My Crops
+
+                </button>
+
+
+                <button
+                    class="dashboard-action"
+                    onclick="showFarmerDonation()">
+
+                    🤝 Donate Crop
+
+                </button>
+
+            </div>
+
+
+            <div id="farmerCropArea">
+
+    <div class="crop-form">
+
+        <h3>🌾 Add Unsold Crop</h3>
+
+        <form onsubmit="saveFarmerCrop(event)">
+
+            <label>Crop Name</label>
+            <input
+                type="text"
+                id="cropName"
+                required
+                placeholder="Example: Tomato">
+
+            <label>Quantity</label>
+            <input
+                type="number"
+                id="cropQuantity"
+                required>
+
+            <label>Unit</label>
+            <select id="cropUnit" required>
+
+                <option value="">Select</option>
+                <option value="kg">kg</option>
+                <option value="tons">tons</option>
+                <option value="bags">bags</option>
+
+            </select>
+
+            <label>Available Until</label>
+            <input
+                type="date"
+                id="cropDate"
+                required>
+
+            <label>Location</label>
+            <input
+                type="text"
+                id="cropLocation"
+                required
+                placeholder="Enter location">
+
+            <label>Description</label>
+
+            <textarea
+                id="cropDescription"
+                rows="4">
+            </textarea>
+
+            <label>📷 Food Photo</label>
+
+            <input
+                type="file"
+                id="donationPhoto"
+                accept="image/*"
+                onchange="previewDonationPhoto()">
+
+            <p class="photo-help">
+                Add a clear photo of the food you are donating.
+            </p>
+            <div id="donationPhotoPreview" class="donation-photo-preview"></div>
+
+            <button type="submit">
+
+                🌾 Add Crop
+
+            </button>
+
+        </form>
+
+    </div>
+
+
+        <div id="farmerCropList"> 
+ 
+        <p> 
+            No crops added yet. 
+        </p> 
+ 
+    </div> 
+ 
+</div>
+
+
+<!-- FARMER DONATE CROP AREA -->
+
+<div id="farmerDonationArea"></div>
+
+
+</div>
+<!-- =========================
+     NGO DASHBOARD
+========================= -->
+
+<div id="ngoFeatures" class="role-feature-section">
+
+    <div class="role-feature-header">
+
+        <div class="role-feature-icon">
+            🤝
+        </div>
+
+        <div>
+
+            <h2>NGO Dashboard</h2>
+
+            <p>
+                View and manage food and crop donations
+                from households and farmers.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div class="ngo-actions">
+
+        <button
+            class="dashboard-action"
+            onclick="viewAvailableDonations()">
+
+            🥫 View Food Donations
+
+        </button>
+
+
+        <button
+            class="dashboard-action"
+            onclick="viewAvailableCropDonations()">
+
+            🌾 View Crop Donations
+
+        </button>
+
+    </div>
+
+
+    <div id="ngoDonationArea">
+
+        <p>
+            Select an option above to view available donations.
+        </p>
+
+    </div>
+
+</div>
+
+        <!-- =========================
+             BACK HOME
+        ========================== -->
+
+        <a
+            href="index.html"
+            class="back-home dashboard-home">
+
+            ← Back to Home
+
+        </a>
+
+
+    </div>
+
+
+
+    <!-- JavaScript -->
+
+    <script src="script.js"></script>
+
+
+</body>
+
+</html>
