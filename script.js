@@ -2187,124 +2187,157 @@ async function displayDonations() {
     }
 
 }
-function viewAvailableDonations() {
+async function viewAvailableCropDonations() {
 
     const ngoDonationArea =
         document.getElementById("ngoDonationArea");
 
     if (!ngoDonationArea) return;
 
-
-    const donations =
-        JSON.parse(
-            localStorage.getItem("ecoMindDonations")
-        ) || [];
-
-
-    if (donations.length === 0) {
-
-        ngoDonationArea.innerHTML = `
-
-            <div class="ngo-empty-message">
-
-                <h3>🥫 No Food Donations Available</h3>
-
-                <p>
-                    There are currently no food donations
-                    available from households.
-                </p>
-
-            </div>
-
-        `;
-
-        return;
-    }
-
-
     ngoDonationArea.innerHTML = `
-
-        <h3>🥫 Available Food Donations</h3>
-
-        <div class="ngo-donation-list"></div>
-
+        <p>Loading crop donations...</p>
     `;
 
+    try {
 
-    const donationList =
-        ngoDonationArea.querySelector(
-            ".ngo-donation-list"
-        );
+        const response =
+            await fetch(
+                "https://zerowaste-umw9.onrender.com/api/crop-donations"
+            );
 
+        const donations =
+            await response.json();
 
-    donations.forEach(function(donation) {
+        if (!response.ok) {
 
-        const donationCard =
-            document.createElement("div");
+            ngoDonationArea.innerHTML = `
+                <p>Unable to load crop donations.</p>
+            `;
 
-        donationCard.className =
-            "donation-card";
+            return;
+        }
 
+        if (donations.length === 0) {
 
-        donationCard.innerHTML = `
+            ngoDonationArea.innerHTML = `
+                <div class="ngo-empty-message">
 
-            <div class="donation-card-header">
+                    <h3>🌾 No Crop Donations Available</h3>
 
-                <h4>
-                    🍎 ${donation.foodName}
-                </h4>
+                    <p>
+                        There are currently no crop donations
+                        available from farmers.
+                    </p>
 
-                <span class="donation-status">
-                    ${donation.status}
-                </span>
+                </div>
+            `;
 
-            </div>
+            return;
+        }
 
+        let donationHTML = `
+            <h3>🌾 Available Crop Donations</h3>
 
-            <p>
-                <strong>Quantity:</strong>
-                ${donation.quantity}
-                ${donation.unit}
-            </p>
-
-
-            <p>
-                <strong>📍 Pickup:</strong>
-                ${donation.location}
-            </p>
-
-
-            <p>
-                <strong>📅 Date:</strong>
-                ${donation.date}
-            </p>
-
-
-            ${
-                donation.description
-                ?
-                `<p>
-                    <strong>Description:</strong>
-                    ${donation.description}
-                </p>`
-                :
-                ""
-            }
-
+            <div class="ngo-crop-donation-list">
         `;
 
+        donations.forEach(function(donation) {
 
-        donationList.appendChild(
-            donationCard
+            donationHTML += `
+                <div class="donation-card">
+
+                    <div class="donation-card-header">
+
+                        <h4>
+                            🌾 ${donation.cropName}
+                        </h4>
+
+                        <span class="donation-status">
+                            ${donation.status}
+                        </span>
+
+                    </div>
+
+                    <p>
+                        <strong>Quantity:</strong>
+                        ${donation.quantity}
+                        ${donation.unit}
+                    </p>
+
+                    <p>
+                        <strong>📍 Pickup:</strong>
+                        ${donation.location}
+                    </p>
+
+                    <div style="margin: 15px 0;">
+
+                        <a
+                            href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(donation.location)}"
+                            target="_blank"
+                            style="
+                                display: inline-block;
+                                padding: 10px 18px;
+                                background: #2e8b57;
+                                color: white;
+                                text-decoration: none;
+                                border-radius: 8px;
+                                font-weight: 600;
+                            "
+                        >
+                            🚗 Get Directions
+                        </a>
+
+                    </div>
+
+                    <p>
+                        <strong>📅 Date:</strong>
+                        ${donation.date}
+                    </p>
+
+                    <p>
+                        <strong>Status:</strong>
+                        ${donation.status}
+                    </p>
+
+                    ${
+                        donation.description
+                        ?
+                        `<p>
+                            <strong>Description:</strong>
+                            ${donation.description}
+                        </p>`
+                        :
+                        ""
+                    }
+
+                </div>
+            `;
+
+        });
+
+        donationHTML += `
+            </div>
+        `;
+
+        ngoDonationArea.innerHTML = donationHTML;
+
+        ngoDonationArea.scrollIntoView({
+            behavior: "smooth"
+        });
+
+    } catch (error) {
+
+        console.log(
+            "Crop donation loading error:",
+            error
         );
 
-    });
-
-
-    ngoDonationArea.scrollIntoView({
-        behavior: "smooth"
-    });
-
+        ngoDonationArea.innerHTML = `
+            <p>
+                Unable to connect to the crop donation server.
+            </p>
+        `;
+    }
 }
 function viewAvailableCropDonations() {
 
@@ -2312,6 +2345,7 @@ function viewAvailableCropDonations() {
         document.getElementById("ngoDonationArea");
 
     if (!ngoDonationArea) return;
+    ngoDonationArea.innerHTML = "";
 
 
     const donations =
@@ -2392,6 +2426,25 @@ function viewAvailableCropDonations() {
                 ${donation.location}
             </p>
 
+            <div style="margin-top: 15px; margin-bottom: 15px;">
+
+                <a
+                    href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(donation.location)}"
+                    target="_blank"
+                    style="
+                        display: inline-block;
+                        padding: 10px 18px;
+                        background: #2e8b57;
+                        color: white;
+                        text-decoration: none;
+                        border-radius: 8px;
+                        font-weight: 600;
+                    "
+                >
+                    🚗 Get Directions
+                </a>
+
+            </div>
 
             <p>
                 <strong>📅 Date:</strong>
@@ -3317,6 +3370,26 @@ async function displayNGOFoodDonations() {
                         ${donation.location}
                     </p>
 
+                    <div style="margin-top: 15px; margin-bottom: 15px;">
+
+                        <a
+                            href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(donation.location)}"
+                            target="_blank"
+                            style="
+                                display: inline-block;
+                                padding: 10px 18px;
+                                background: #2e8b57;
+                                color: white;
+                                text-decoration: none;
+                                border-radius: 8px;
+                                font-weight: 600;
+                            "
+                        >
+                            🚗 Get Directions
+                        </a>
+
+                    </div>
+
                     <p>
                         <strong>📅 Date:</strong>
                         ${donation.date}
@@ -3428,6 +3501,19 @@ async function displayNGOCropDonations() {
                         <strong>📍 Pickup:</strong>
                         ${donation.location}
                     </p>
+
+                    <div style="margin-top: 15px;">
+
+                        <a
+                            href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(donation.location)}"
+                            target="_blank"
+                            class="dashboard-action"
+                            style="display: inline-block; text-decoration: none;"
+                        >
+                            🚗 Get Directions
+                        </a>
+
+                    </div>
 
                     <p>
                         <strong>📅 Date:</strong>
