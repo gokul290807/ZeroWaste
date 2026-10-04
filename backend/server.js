@@ -1,5 +1,6 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const path = require("path");
 const bcrypt = require("bcryptjs");
 const User = require("./models/User");
 const Food = require("./models/Food");
@@ -17,6 +18,9 @@ const PORT = 3000;
 // Allow JSON data
 app.use(express.json());
 app.use(cors());
+
+// Serve ZeroWaste frontend
+app.use(express.static(path.join(__dirname, "../public")));
 
 
 // Connect to MongoDB
@@ -205,10 +209,10 @@ app.post("/api/login", async function (req, res) {
 
 });
 // Test route
-app.get("/", function (req, res) {
-
-    res.send("🌱 Zero Waste Backend is running!");
-
+app.get("/api/test", function (req, res) {
+    res.json({
+        message: "ZeroWaste API is working!"
+    });
 });
 app.get("/api/test", function (req, res) {
 
