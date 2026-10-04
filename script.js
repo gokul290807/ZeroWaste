@@ -48,7 +48,7 @@ async function loginUser(event) {
     try {
 
         const response =
-            await fetch("http://localhost:3000/api/login", {
+            await fetch("https://zerowaste-umw9.onrender.com/api/login", {
 
                 method: "POST",
 
@@ -140,7 +140,7 @@ async function registerUser(event) {
     try {
 
         const response =
-            await fetch("http://localhost:3000/api/register", {
+            await fetch("https://zerowaste-umw9.onrender.com/api/register", {
 
                 method: "POST",
 
@@ -619,7 +619,7 @@ async function saveFood(event) {
 
         const response =
             await fetch(
-                "http://localhost:3000/api/foods",
+                "https://zerowaste-umw9.onrender.com/api/foods",
                 {
 
                     method: "POST",
@@ -726,7 +726,7 @@ async function displayFoodInventory() {
 
         const response =
             await fetch(
-                "http://localhost:3000/api/foods/" +
+                "https://zerowaste-umw9.onrender.com/api/foods/" +
                 encodeURIComponent(user.email)
             );
 
@@ -940,7 +940,7 @@ async function deleteFood(foodId) {
 
         const response =
             await fetch(
-                "http://localhost:3000/api/foods/" +
+                "https://zerowaste-umw9.onrender.com/api/foods/" +
                 foodId,
                 {
                     method: "DELETE"
@@ -1003,7 +1003,7 @@ async function updateFoodStatistics() {
 
         const response =
             await fetch(
-                "http://localhost:3000/api/foods/" +
+                "https://zerowaste-umw9.onrender.com/api/foods/" +
                 encodeURIComponent(user.email)
             );
 
@@ -1140,7 +1140,7 @@ async function generateAISuggestion() {
 
         const response =
             await fetch(
-                "http://localhost:3000/api/foods/" +
+                "https://zerowaste-umw9.onrender.com/api/foods/" +
                 encodeURIComponent(user.email)
             );
 
@@ -1480,7 +1480,7 @@ async function displayExpiryAlerts() {
 
         const response =
             await fetch(
-                "http://localhost:3000/api/foods/" +
+                "https://zerowaste-umw9.onrender.com/api/foods/" +
                 encodeURIComponent(user.email)
             );
 
@@ -1669,7 +1669,7 @@ async function notifyOneDayBeforeExpiry() {
 
         const response =
             await fetch(
-                "http://localhost:3000/api/foods/" +
+                "https://zerowaste-umw9.onrender.com/api/foods/" +
                 encodeURIComponent(user.email)
             );
 
@@ -1780,7 +1780,7 @@ async function loadDonationFood() {
 
         const response =
             await fetch(
-                "http://localhost:3000/api/foods/" +
+                "https://zerowaste-umw9.onrender.com/api/foods/" +
                 encodeURIComponent(user.email)
             );
 
@@ -1898,7 +1898,7 @@ async function submitDonation(event) {
 
         const foodResponse =
             await fetch(
-                "http://localhost:3000/api/foods/" +
+                "https://zerowaste-umw9.onrender.com/api/foods/" +
                 encodeURIComponent(user.email)
             );
 
@@ -1943,7 +1943,7 @@ async function submitDonation(event) {
 
         const donationResponse =
             await fetch(
-                "http://localhost:3000/api/donations",
+                "https://zerowaste-umw9.onrender.com/api/donations",
                 {
 
                     method: "POST",
@@ -2059,7 +2059,7 @@ async function displayDonations() {
 
         const response =
             await fetch(
-                "http://localhost:3000/api/donations/" +
+                "https://zerowaste-umw9.onrender.com/api/donations/" +
                 encodeURIComponent(user.email)
             );
 
@@ -2472,7 +2472,7 @@ async function saveFarmerCrop(event) {
 
         const response =
             await fetch(
-                "http://localhost:3000/api/crops",
+                "https://zerowaste-umw9.onrender.com/api/crops",
                 {
 
                     method: "POST",
@@ -2566,7 +2566,7 @@ async function displayFarmerCrops() {
 
         const response =
             await fetch(
-                "http://localhost:3000/api/crops/" +
+                "https://zerowaste-umw9.onrender.com/api/crops/" +
                 encodeURIComponent(user.email)
             );
 
@@ -2684,7 +2684,7 @@ async function deleteFarmerCrop(cropId) {
 
         const response =
             await fetch(
-                "http://localhost:3000/api/crops/" +
+                "https://zerowaste-umw9.onrender.com/api/crops/" +
                 cropId,
                 {
                     method: "DELETE"
@@ -2797,7 +2797,7 @@ async function showFarmerDonation() {
 
         const response =
             await fetch(
-                "http://localhost:3000/api/crops/" +
+                "https://zerowaste-umw9.onrender.com/api/crops/" +
                 encodeURIComponent(user.email)
             );
 
@@ -2983,7 +2983,7 @@ async function submitFarmerCropDonation(event) {
 
         const cropResponse =
             await fetch(
-                "http://localhost:3000/api/crops/" +
+                "https://zerowaste-umw9.onrender.com/api/crops/" +
                 encodeURIComponent(user.email)
             );
 
@@ -3028,7 +3028,7 @@ async function submitFarmerCropDonation(event) {
 
         const donationResponse =
             await fetch(
-                "http://localhost:3000/api/crop-donations",
+                "https://zerowaste-umw9.onrender.com/api/crop-donations",
                 {
 
                     method: "POST",
@@ -3137,7 +3137,7 @@ async function displayCropDonations() {
 
         const response =
             await fetch(
-                "http://localhost:3000/api/crop-donations/" +
+                "https://zerowaste-umw9.onrender.com/api/crop-donations/" +
                 encodeURIComponent(user.email)
             );
 
@@ -3256,7 +3256,7 @@ async function displayNGOFoodDonations() {
 
         const response =
             await fetch(
-                "http://localhost:3000/api/donations"
+                "https://zerowaste-umw9.onrender.com/api/donations"
             );
 
         const donations =
@@ -3370,7 +3370,7 @@ async function displayNGOCropDonations() {
 
         const response =
             await fetch(
-                "http://localhost:3000/api/crop-donations"
+                "https://zerowaste-umw9.onrender.com/api/crop-donations"
             );
 
         const cropDonations =
