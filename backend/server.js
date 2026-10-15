@@ -1,852 +1,1415 @@
 const express = require("express");
-const mongoose = require("mongoose");
 const path = require("path");
 const bcrypt = require("bcryptjs");
-const User = require("./models/User");
-const Food = require("./models/Food");
-const Donation = require("./models/Donation");
-const Crop = require("./models/Crop");
-const CropDonation = require("./models/CropDonation");
 const cors = require("cors");
-require("dotenv").config();
+const jwt = require("jsonwebtoken");
+require("dotenv").config({ path: path.join(__dirname, ".env") });
+
+const db = require("./db");
+const {
+    initDatabase,
+    User,
+    Food,
+    Crop,
+    Donation,
+    CropDonation
+} = db;
+
+const paymentService = require("./services/paymentService");
+const { parseCalendarDate, calculateExpiryStatus } = require("./dateUtils");
 
 const app = express();
+const PORT = process.env.PORT || 3000;
+const JWT_SECRET = process.env.JWT_SECRET || "zerowaste_jwt_secure_secret_key_2026";
 
-const PORT = 3000;
-
-
-// Allow JSON data
-app.use(express.json());
+// Middleware
+app.use(express.json({ limit: "15mb" }));
+app.use(express.urlencoded({ extended: true, limit: "15mb" }));
 app.use(cors());
 
 // Serve ZeroWaste frontend
 app.use(express.static(path.join(__dirname, "../public")));
 
+// Initialize database (Mongoose Atlas with auto-local persistence fallback)
+initDatabase();
 
-// Connect to MongoDB
-mongoose.connect(process.env.MONGODB_URI)
-    .then(function () {
+/* ========================================================
+   AUTHENTICATION & AUTHORIZATION HELPERS
+======================================================== */
 
-        console.log("✅ MongoDB connected successfully!");
+function generateToken(user) {
+    return jwt.sign(
+        {
+            userId: user._id,
+            email: user.email.toLowerCase().trim(),
+            role: user.role
+        },
+        JWT_SECRET,
+        { expiresIn: "7d" }
+    );
+}
 
-    })
-    .catch(function (error) {
+function authenticateToken(req, res, next) {
+    const authHeader = req.headers["authorization"];
+    const token = authHeader && authHeader.startsWith("Bearer ") ? authHeader.slice(7) : null;
 
-        console.log("❌ MongoDB connection failed:");
-        console.log(error.message);
+    if (!token) {
+        return res.status(401).json({
+            message: "Authentication required. Please log in to continue."
+        });
+    }
 
+    jwt.verify(token, JWT_SECRET, (err, decoded) => {
+        if (err) {
+            return res.status(403).json({
+                message: "Session expired or invalid. Please log in again."
+            });
+        }
+        req.user = decoded;
+        next();
     });
+}
+
+function optionalAuth(req, res, next) {
+    const authHeader = req.headers["authorization"];
+    const token = authHeader && authHeader.startsWith("Bearer ") ? authHeader.slice(7) : null;
+
+    if (!token) {
+        req.user = null;
+        return next();
+    }
+
+    jwt.verify(token, JWT_SECRET, (err, decoded) => {
+        if (!err) {
+            req.user = decoded;
+        } else {
+            req.user = null;
+        }
+        next();
+    });
+}
+
+/**
+ * Sanitizes donation objects to protect donor contact privacy before acceptance.
+ * Only the donor themselves, or the assigned NGO AFTER acceptance, can see real phone details.
+ */
+function sanitizeDonationForViewer(donation, requestingUser) {
+    if (!donation) return null;
+    const doc = donation.toObject ? donation.toObject() : JSON.parse(JSON.stringify(donation));
+
+    const donorEmail = (doc.userEmail || doc.donorEmail || "").toLowerCase().trim();
+    const ngoEmail = (doc.requestedBy || doc.ngoEmail || "").toLowerCase().trim();
+    const userEmail = (requestingUser && requestingUser.email ? requestingUser.email : "").toLowerCase().trim();
+
+    const isDonor = userEmail && userEmail === donorEmail;
+    const isAssignedNgo = userEmail && userEmail === ngoEmail;
+    const status = (doc.donationStatus || doc.status || "").toLowerCase();
+    const isAcceptedOrBeyond = ["accepted", "collection_scheduled", "collected", "completed"].includes(status);
+
+    // If viewer is the donor, full access
+    if (isDonor) {
+        return doc;
+    }
+
+    // If viewer is the assigned NGO and donation is accepted or later, grant contact details
+    if (isAssignedNgo && isAcceptedOrBeyond) {
+        return doc;
+    }
+
+    // Otherwise (marketplace browser, unassigned NGO, or prior to acceptance), mask contact details
+    doc.donorContact = "[Contact details revealed once request is accepted by donor]";
+    return doc;
+}
+
+/* ========================================================
+   AUTHENTICATION & USER APIS
+======================================================== */
 
 // Register new user
 app.post("/api/register", async function (req, res) {
-
     try {
-
-        const {
-            name,
-            email,
-            password,
-            role
-        } = req.body;
+        const { name, email, password, role, contactNumber, address } = req.body;
 
         if (!name || !email || !password || !role) {
-
             return res.status(400).json({
-                message: "Please fill all fields."
+                message: "Please fill all required fields (name, email, password, role)."
             });
-
         }
 
-        const existingUser =
-            await User.findOne({
-                email: email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email.trim())) {
+            return res.status(400).json({
+                message: "Please enter a valid email address format."
             });
+        }
 
+        const cleanRole = role.toLowerCase().trim();
+        if (!["household", "farmer", "ngo"].includes(cleanRole)) {
+            return res.status(400).json({
+                message: "Invalid role selected. Allowed roles are household, farmer, or ngo."
+            });
+        }
+
+        if (password.length < 6) {
+            return res.status(400).json({
+                message: "Password must be at least 6 characters long."
+            });
+        }
+
+        const cleanContact = contactNumber ? contactNumber.trim() : "";
+        if ((cleanRole === "household" || cleanRole === "farmer") && cleanContact.length < 7) {
+            return res.status(400).json({
+                message: "A valid contact phone number (at least 7 digits) is required for registration."
+            });
+        }
+
+        const existingUser = await User.findOne({ email: email.toLowerCase().trim() });
         if (existingUser) {
-
             return res.status(400).json({
-                message: "Email already registered."
+                message: "An account with this email address is already registered."
             });
-
         }
 
-        const hashedPassword =
-            await bcrypt.hash(password, 10);
-
-        const newUser =
-            new User({
-
-                name: name,
-
-                email: email,
-
-                password: hashedPassword,
-
-                role: role
-
-            });
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const newUser = new User({
+            name: name.trim(),
+            email: email.toLowerCase().trim(),
+            password: hashedPassword,
+            role: cleanRole,
+            contactNumber: cleanContact,
+            address: address ? address.trim() : ""
+        });
 
         await newUser.save();
+        const token = generateToken(newUser);
 
         res.status(201).json({
-
-            message:
-                "Account created successfully!"
-
+            message: "Account created successfully!",
+            token: token,
+            user: {
+                id: newUser._id,
+                name: newUser.name,
+                email: newUser.email,
+                role: newUser.role,
+                contactNumber: newUser.contactNumber || "",
+                address: newUser.address || ""
+            }
         });
-
     } catch (error) {
-
-        console.log(
-            "Registration error:",
-            error.message
-        );
-
-        res.status(500).json({
-
-            message:
-                "Server error while registering."
-
-        });
-
+        console.error("Registration error:", error.message);
+        res.status(500).json({ message: "Server error while registering account." });
     }
-
 });
+
 // Login user
 app.post("/api/login", async function (req, res) {
-
     try {
-
-        const {
-            email,
-            password
-        } = req.body;
-
+        const { email, password } = req.body;
 
         if (!email || !password) {
-
             return res.status(400).json({
-
-                message:
-                    "Please enter email and password."
-
+                message: "Please enter your email and password."
             });
-
         }
 
-
-        const user =
-            await User.findOne({
-                email: email
-            });
-
-
+        const user = await User.findOne({ email: email.toLowerCase().trim() });
         if (!user) {
-
             return res.status(401).json({
-
-                message:
-                    "Invalid email or password."
-
+                message: "Invalid email or password."
             });
-
         }
 
-
-        const passwordMatch =
-            await bcrypt.compare(
-                password,
-                user.password
-            );
-
-
+        const passwordMatch = await bcrypt.compare(password, user.password);
         if (!passwordMatch) {
-
             return res.status(401).json({
-
-                message:
-                    "Invalid email or password."
-
+                message: "Invalid email or password."
             });
-
         }
 
+        const token = generateToken(user);
 
         res.status(200).json({
-
-            message:
-                "Login successful!",
-
+            message: "Login successful!",
+            token: token,
             user: {
-
+                id: user._id,
                 name: user.name,
-
                 email: user.email,
-
-                role: user.role
-
+                role: user.role,
+                contactNumber: user.contactNumber || "",
+                address: user.address || ""
             }
-
         });
-
-
     } catch (error) {
-
-        console.log(
-            "Login error:",
-            error.message
-        );
-
-
-        res.status(500).json({
-
-            message:
-                "Server error while logging in."
-
-        });
-
+        console.error("Login error:", error.message);
+        res.status(500).json({ message: "Server error while logging in." });
     }
-
 });
-// Test route
+
+// Health check / Demo status
 app.get("/api/test", function (req, res) {
     res.json({
-        message: "ZeroWaste API is working!"
+        message: "ZeroWaste API is fully operational!",
+        storageEngine: db.isUsingLocalDb ? "Local High-Reliability Store" : "MongoDB Atlas Cluster",
+        mongoConnected: !db.isUsingLocalDb,
+        paymentProvider: paymentService.provider,
+        timestamp: new Date().toISOString()
     });
 });
-app.get("/api/test", function (req, res) {
 
-    res.json({
-        message: "ZeroWaste API is working!"
-    });
+/* ========================================================
+   FOOD INVENTORY APIS (Household)
+======================================================== */
 
-});
-// Add food to MongoDB
-app.post("/api/foods", async function (req, res) {
-
+// Add food item
+app.post("/api/foods", authenticateToken, async function (req, res) {
     try {
+        const { name, quantity, unit, expiryDate, category } = req.body;
 
-        const {
-            userEmail,
-            name,
-            quantity,
-            unit,
-            expiryDate,
-            category
-        } = req.body;
+        if (!name || quantity === undefined || !unit || !expiryDate) {
+            return res.status(400).json({ message: "Please fill all food details (name, quantity, unit, expiryDate)." });
+        }
 
-        if (
-            !userEmail ||
-            !name ||
-            !quantity ||
-            !unit ||
-            !expiryDate ||
-            !category
-        ) {
+        if (!parseCalendarDate(expiryDate)) {
+            return res.status(400).json({ message: "Invalid expiry date format. Please select a valid date (YYYY-MM-DD)." });
+        }
 
-            return res.status(400).json({
-                message: "Please fill all food details."
-            });
-
+        const numQty = Number(quantity);
+        if (isNaN(numQty) || numQty <= 0) {
+            return res.status(400).json({ message: "Food quantity must be a positive number greater than 0." });
         }
 
         const newFood = new Food({
-
-            userEmail: userEmail,
-
-            name: name,
-
-            quantity: quantity,
-
-            unit: unit,
-
+            userEmail: req.user.email,
+            name: name.trim(),
+            quantity: numQty,
+            unit: unit.trim(),
             expiryDate: expiryDate,
-
-            category: category
-
+            category: category ? category.trim() : "Household Stock"
         });
 
         await newFood.save();
-
-        res.status(201).json({
-
-            message: "Food added successfully!",
-
-            food: newFood
-
-        });
-
+        res.status(201).json({ message: "Food added successfully!", food: newFood });
     } catch (error) {
-
-        console.log(
-            "Food saving error:",
-            error.message
-        );
-
-        res.status(500).json({
-
-            message:
-                "Server error while saving food."
-
-        });
-
+        console.error("Food saving error:", error.message);
+        res.status(500).json({ message: "Server error while saving food." });
     }
-
 });
 
-
-// Get food from MongoDB
-app.get("/api/foods/:email", async function (req, res) {
-
+// Get user food inventory (only own inventory)
+app.get("/api/foods/:email", authenticateToken, async function (req, res) {
     try {
+        const requestedEmail = req.params.email.toLowerCase().trim();
+        if (req.user.email !== requestedEmail) {
+            return res.status(403).json({ message: "Unauthorized: You can only view your own food inventory." });
+        }
 
-        const foods =
-            await Food.find({
-                userEmail: req.params.email
-            });
-
+        const foods = await Food.find({ userEmail: requestedEmail }).sort({ createdAt: -1 });
         res.status(200).json(foods);
-
     } catch (error) {
-
-        console.log(
-            "Food loading error:",
-            error.message
-        );
-
-        res.status(500).json({
-
-            message:
-                "Server error while loading food."
-
-        });
-
+        console.error("Food loading error:", error.message);
+        res.status(500).json({ message: "Server error while loading food inventory." });
     }
-
 });
-// Delete food from MongoDB
-app.delete("/api/foods/:id", async function (req, res) {
 
+// Edit food item
+app.put("/api/foods/:id", authenticateToken, async function (req, res) {
     try {
-
-        const deletedFood =
-            await Food.findByIdAndDelete(
-                req.params.id
-            );
-
-        if (!deletedFood) {
-
-            return res.status(404).json({
-
-                message:
-                    "Food item not found."
-
-            });
-
+        const food = await Food.findById(req.params.id);
+        if (!food) {
+            return res.status(404).json({ message: "Food item not found." });
         }
 
-        res.status(200).json({
-
-            message:
-                "Food deleted successfully!"
-
-        });
-
-    } catch (error) {
-
-        console.log(
-            "Food deletion error:",
-            error.message
-        );
-
-        res.status(500).json({
-
-            message:
-                "Server error while deleting food."
-
-        });
-
-    }
-
-});
-
-// Create a new food donation
-app.post("/api/donations", async function (req, res) {
-
-    try {
-
-        const {
-            userEmail,
-            foodId,
-            foodName,
-            quantity,
-            unit,
-            location,
-            description
-        } = req.body;
-
-
-        if (
-            !userEmail ||
-            !foodId ||
-            !foodName ||
-            !quantity ||
-            !unit ||
-            !location
-        ) {
-
-            return res.status(400).json({
-
-                message:
-                    "Please fill all donation details."
-
-            });
-
+        if (food.userEmail.toLowerCase() !== req.user.email) {
+            return res.status(403).json({ message: "Unauthorized: You can only edit your own food items." });
         }
 
+        const { name, quantity, unit, expiryDate, category } = req.body;
+        if (name) food.name = name.trim();
+        if (quantity !== undefined) {
+            const numQty = Number(quantity);
+            if (isNaN(numQty) || numQty <= 0) {
+                return res.status(400).json({ message: "Quantity must be a positive number." });
+            }
+            food.quantity = numQty;
+        }
+        if (unit) food.unit = unit.trim();
+        if (expiryDate) {
+            if (!parseCalendarDate(expiryDate)) {
+                return res.status(400).json({ message: "Invalid expiry date format. Please select a valid date (YYYY-MM-DD)." });
+            }
+            food.expiryDate = expiryDate;
+        }
+        if (category) food.category = category.trim();
 
-        const newDonation =
-            new Donation({
-
-                userEmail: userEmail,
-
-                foodId: foodId,
-
-                foodName: foodName,
-
-                quantity: Number(quantity),
-
-                unit: unit,
-
-                location: location,
-
-                description:
-                    description || "",
-
-                date:
-                    new Date().toLocaleDateString(),
-
-                status: "Available"
-
-            });
-
-
-        await newDonation.save();
-
-
-        res.status(201).json({
-
-            message:
-                "Donation created successfully!",
-
-            donation:
-                newDonation
-
-        });
-
-
+        await food.save();
+        res.status(200).json({ message: "Food item updated successfully!", food: food });
     } catch (error) {
-
-        console.log(
-            "Donation saving error:",
-            error.message
-        );
-
-
-        res.status(500).json({
-
-            message:
-                "Server error while saving donation."
-
-        });
-
-    }
-
-});
-// Get donations for a user
-app.get("/api/donations/:email", async function (req, res) {
-
-    try {
-
-        const donations =
-            await Donation.find({
-                userEmail: req.params.email
-            }).sort({
-                createdAt: -1
-            });
-
-
-        res.status(200).json(
-            donations
-        );
-
-
-    } catch (error) {
-
-        console.log(
-            "Donation loading error:",
-            error.message
-        );
-
-
-        res.status(500).json({
-
-            message:
-                "Server error while loading donations."
-
-        });
-
-    }
-
-});
-app.get("/api/donations", async function (req, res) {
-    try {
-
-        const donations =
-            await Donation.find({
-                status: "Available"
-            }).sort({
-                createdAt: -1
-            });
-
-        res.status(200).json(donations);
-
-    } catch (error) {
-
-        console.log(
-            "All donation loading error:",
-            error.message
-        );
-
-        res.status(500).json({
-            message:
-                "Server error while loading donations."
-        });
+        console.error("Food update error:", error.message);
+        res.status(500).json({ message: "Server error while updating food item." });
     }
 });
-// Add a new farmer crop
-app.post("/api/crops", async function (req, res) {
 
+// Delete food item
+app.delete("/api/foods/:id", authenticateToken, async function (req, res) {
     try {
-
-        const {
-            userEmail,
-            name,
-            quantity,
-            unit,
-            date,
-            location,
-            description
-        } = req.body;
-
-
-        if (
-            !userEmail ||
-            !name ||
-            !quantity ||
-            !unit ||
-            !date ||
-            !location
-        ) {
-
-            return res.status(400).json({
-
-                message:
-                    "Please fill all crop details."
-
-            });
-
+        const food = await Food.findById(req.params.id);
+        if (!food) {
+            return res.status(404).json({ message: "Food item not found." });
         }
 
+        if (food.userEmail.toLowerCase() !== req.user.email) {
+            return res.status(403).json({ message: "Unauthorized: You can only delete your own food items." });
+        }
 
-        const newCrop =
-            new Crop({
+        await Food.findByIdAndDelete(req.params.id);
+        res.status(200).json({ message: "Food deleted successfully!" });
+    } catch (error) {
+        console.error("Food deletion error:", error.message);
+        res.status(500).json({ message: "Server error while deleting food." });
+    }
+});
 
-                userEmail: userEmail,
+/* ========================================================
+   FARMER CROPS APIS
+======================================================== */
 
-                name: name,
+// Add farmer crop
+app.post("/api/crops", authenticateToken, async function (req, res) {
+    try {
+        if (req.user.role !== "farmer") {
+            return res.status(403).json({ message: "Only registered farmers can add crop produce." });
+        }
 
-                quantity: Number(quantity),
+        const { name, quantity, unit, date, location, description } = req.body;
 
-                unit: unit,
+        if (!name || quantity === undefined || !unit || !date || !location) {
+            return res.status(400).json({ message: "Please fill all crop details (name, quantity, unit, date, location)." });
+        }
 
-                date: date,
+        const numQty = Number(quantity);
+        if (isNaN(numQty) || numQty <= 0) {
+            return res.status(400).json({ message: "Crop quantity must be a positive number greater than 0." });
+        }
 
-                location: location,
-
-                description:
-                    description || "",
-
-                status: "Available"
-
-            });
-
+        const newCrop = new Crop({
+            userEmail: req.user.email,
+            name: name.trim(),
+            quantity: numQty,
+            unit: unit.trim(),
+            date: date,
+            location: location.trim(),
+            description: description ? description.trim() : "",
+            status: "Available"
+        });
 
         await newCrop.save();
-
-
-        res.status(201).json({
-
-            message:
-                "Crop added successfully!",
-
-            crop:
-                newCrop
-
-        });
-
-
+        res.status(201).json({ message: "Crop added successfully!", crop: newCrop });
     } catch (error) {
-
-        console.log(
-            "Crop saving error:",
-            error.message
-        );
-
-
-        res.status(500).json({
-
-            message:
-                "Server error while saving crop."
-
-        });
-
+        console.error("Crop saving error:", error.message);
+        res.status(500).json({ message: "Server error while saving crop." });
     }
-
 });
-// Get crops for a farmer
-app.get("/api/crops/:email", async function (req, res) {
 
+// Get farmer crops (only own crops)
+app.get("/api/crops/:email", authenticateToken, async function (req, res) {
     try {
-
-        const crops =
-            await Crop.find({
-                userEmail: req.params.email
-            }).sort({
-                createdAt: -1
-            });
-
-
-        res.status(200).json(
-            crops
-        );
-
-
-    } catch (error) {
-
-        console.log(
-            "Crop loading error:",
-            error.message
-        );
-
-
-        res.status(500).json({
-
-            message:
-                "Server error while loading crops."
-
-        });
-
-    }
-
-});
-// Delete a farmer crop
-app.delete("/api/crops/:id", async function (req, res) {
-
-    try {
-
-        const deletedCrop =
-            await Crop.findByIdAndDelete(
-                req.params.id
-            );
-
-
-        if (!deletedCrop) {
-
-            return res.status(404).json({
-
-                message:
-                    "Crop not found."
-
-            });
-
+        const requestedEmail = req.params.email.toLowerCase().trim();
+        if (req.user.email !== requestedEmail) {
+            return res.status(403).json({ message: "Unauthorized: You can only view your own crop produce." });
         }
 
-
-        res.status(200).json({
-
-            message:
-                "Crop deleted successfully!"
-
-        });
-
-
+        const crops = await Crop.find({ userEmail: requestedEmail }).sort({ createdAt: -1 });
+        res.status(200).json(crops);
     } catch (error) {
-
-        console.log(
-            "Crop deletion error:",
-            error.message
-        );
-
-
-        res.status(500).json({
-
-            message:
-                "Server error while deleting crop."
-
-        });
-
+        console.error("Crop loading error:", error.message);
+        res.status(500).json({ message: "Server error while loading crops." });
     }
-
 });
-// Create a new crop donation
-app.post("/api/crop-donations", async function (req, res) {
 
+// Edit farmer crop
+app.put("/api/crops/:id", authenticateToken, async function (req, res) {
     try {
+        const crop = await Crop.findById(req.params.id);
+        if (!crop) {
+            return res.status(404).json({ message: "Crop not found." });
+        }
 
+        if (crop.userEmail.toLowerCase() !== req.user.email) {
+            return res.status(403).json({ message: "Unauthorized: You can only edit your own crops." });
+        }
+
+        const { name, quantity, unit, date, location, description, status } = req.body;
+        if (name) crop.name = name.trim();
+        if (quantity !== undefined) {
+            const numQty = Number(quantity);
+            if (isNaN(numQty) || numQty <= 0) {
+                return res.status(400).json({ message: "Quantity must be a positive number." });
+            }
+            crop.quantity = numQty;
+        }
+        if (unit) crop.unit = unit.trim();
+        if (date) crop.date = date;
+        if (location) crop.location = location.trim();
+        if (description !== undefined) crop.description = description ? description.trim() : "";
+        if (status) crop.status = status;
+
+        await crop.save();
+        res.status(200).json({ message: "Crop updated successfully!", crop: crop });
+    } catch (error) {
+        console.error("Crop update error:", error.message);
+        res.status(500).json({ message: "Server error while updating crop." });
+    }
+});
+
+// Delete farmer crop
+app.delete("/api/crops/:id", authenticateToken, async function (req, res) {
+    try {
+        const crop = await Crop.findById(req.params.id);
+        if (!crop) {
+            return res.status(404).json({ message: "Crop not found." });
+        }
+
+        if (crop.userEmail.toLowerCase() !== req.user.email) {
+            return res.status(403).json({ message: "Unauthorized: You can only delete your own crops." });
+        }
+
+        await Crop.findByIdAndDelete(req.params.id);
+        res.status(200).json({ message: "Crop deleted successfully!" });
+    } catch (error) {
+        console.error("Crop deletion error:", error.message);
+        res.status(500).json({ message: "Server error while deleting crop." });
+    }
+});
+
+/* ========================================================
+   COMMON WORKFLOW HANDLERS FOR DONATIONS & CROP DONATIONS
+======================================================== */
+
+/**
+ * Creates a donation record (Food or Crop)
+ */
+async function handleCreateDonation(Model, req, res, isCrop = false) {
+    try {
         const {
-            userEmail,
+            itemId,
+            itemName,
+            foodId,
             cropId,
+            foodName,
             cropName,
             quantity,
             unit,
+            category,
             location,
-            description
+            pickupLocation,
+            description,
+            photo,
+            donationType,
+            expectedAmount,
+            expiryDate
         } = req.body;
 
+        const effectiveName = (itemName || (isCrop ? cropName : foodName) || "").trim();
+        const effectiveId = itemId || (isCrop ? cropId : foodId) || "";
 
-        if (
-            !userEmail ||
-            !cropId ||
-            !cropName ||
-            !quantity ||
-            !unit ||
-            !location
-        ) {
-
+        if (!effectiveName || quantity === undefined || !unit || !location) {
             return res.status(400).json({
-
-                message:
-                    "Please fill all crop donation details."
-
+                message: "Please fill all required donation details (item name, quantity, unit, location)."
             });
-
         }
 
+        const numQty = Number(quantity);
+        if (isNaN(numQty) || numQty <= 0) {
+            return res.status(400).json({ message: "Donation quantity must be greater than 0." });
+        }
 
-        const newCropDonation =
-            new CropDonation({
+        // Validate food expiry: do not allow expired food to be newly donated
+        if (!isCrop) {
+            if (expiryDate) {
+                const status = calculateExpiryStatus(expiryDate);
+                if (status.isValid && status.isExpired) {
+                    return res.status(400).json({
+                        message: "Cannot donate expired food. Please select fresh surplus food."
+                    });
+                }
+            }
+            if (effectiveId && !effectiveId.startsWith("custom_")) {
+                const existingFood = await Food.findById(effectiveId);
+                if (existingFood && existingFood.expiryDate) {
+                    const status = calculateExpiryStatus(existingFood.expiryDate);
+                    if (status.isValid && status.isExpired) {
+                        return res.status(400).json({
+                            message: "Cannot donate expired food. The selected inventory item has already expired."
+                        });
+                    }
+                }
+            }
+        }
 
-                userEmail: userEmail,
+        // Retrieve real registered donor details from database
+        const donorUser = await User.findOne({ email: req.user.email });
+        const realDonorName = donorUser ? donorUser.name : "Registered Donor";
+        const realDonorContact = donorUser ? donorUser.contactNumber : "";
 
-                cropId: cropId,
+        const isValueBased = donationType === "value_based";
+        const numericExpectedAmount = isValueBased ? Math.max(0, Number(expectedAmount) || 0) : 0;
 
-                cropName: cropName,
+        const defaultPhoto = isCrop
+            ? "https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=500&auto=format&fit=crop&q=60"
+            : "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=500&auto=format&fit=crop&q=60";
 
-                quantity: Number(quantity),
+        const donationData = {
+            userEmail: req.user.email,
+            donorName: realDonorName,
+            donorEmail: req.user.email,
+            donorContact: realDonorContact,
+            quantity: numQty,
+            unit: unit.trim(),
+            category: category || (isCrop ? "Surplus Crop" : "Household Surplus"),
+            location: location.trim(),
+            pickupLocation: (pickupLocation || location).trim(),
+            description: description ? description.trim() : "",
+            photo: photo || defaultPhoto,
+            date: new Date().toLocaleDateString(),
+            donationType: isValueBased ? "value_based" : "free",
+            expectedAmount: numericExpectedAmount,
+            agreedAmount: 0,
+            paymentStatus: "not_applicable",
+            donationStatus: "available",
+            status: "Available",
+            timeline: [
+                {
+                    event: isCrop ? "Crop Donation Created" : "Food Donation Created",
+                    timestamp: new Date(),
+                    details: isValueBased
+                        ? `Value-Based donation listed with expected value of ₹${numericExpectedAmount}`
+                        : "Free community donation listed for immediate redistribution (₹0)",
+                    actor: realDonorName
+                }
+            ]
+        };
 
-                unit: unit,
+        if (isCrop) {
+            donationData.cropId = effectiveId;
+            donationData.cropName = effectiveName;
+        } else {
+            donationData.foodId = effectiveId;
+            donationData.foodName = effectiveName;
+        }
 
-                location: location,
-
-                description:
-                    description || "",
-
-                date:
-                    new Date().toLocaleDateString(),
-
-                status: "Available"
-
-            });
-
-
-        await newCropDonation.save();
-
+        const newDonation = new Model(donationData);
+        await newDonation.save();
 
         res.status(201).json({
-
-            message:
-                "Crop donation created successfully!",
-
-            donation:
-                newCropDonation
-
+            message: `${isCrop ? "Crop" : "Food"} donation created successfully!`,
+            donation: newDonation
         });
-
-
     } catch (error) {
+        console.error("Donation creation error:", error);
+        res.status(500).json({ message: "Server error while creating donation." });
+    }
+}
 
-        console.log(
-            "Crop donation saving error:",
-            error.message
-        );
+/**
+ * Handle NGO Request transition (AVAILABLE -> REQUESTED)
+ */
+async function handleRequestDonation(Model, req, res) {
+    try {
+        const donation = await Model.findById(req.params.id);
+        if (!donation) {
+            return res.status(404).json({ message: "Donation not found." });
+        }
 
+        const currentStatus = (donation.donationStatus || donation.status || "").toLowerCase();
+        if (currentStatus !== "available") {
+            return res.status(400).json({
+                message: `Cannot request donation. Current status is already '${donation.donationStatus || donation.status}'.`
+            });
+        }
 
-        res.status(500).json({
+        if (req.user.role !== "ngo") {
+            return res.status(403).json({
+                message: "Only registered NGO accounts can request donations."
+            });
+        }
 
-            message:
-                "Server error while saving crop donation."
+        // Fetch real registered NGO profile
+        const ngoUser = await User.findOne({ email: req.user.email });
+        const ngoTitle = ngoUser ? ngoUser.name : "Registered NGO";
+        const ngoContact = ngoUser ? ngoUser.contactNumber : "";
+        const { notes } = req.body;
 
+        donation.donationStatus = "requested";
+        donation.status = "Requested";
+        donation.requestedBy = req.user.email;
+        donation.ngoName = ngoTitle;
+        donation.ngoEmail = req.user.email;
+        donation.ngoContact = ngoContact;
+        donation.requestedAt = new Date();
+
+        if (!Array.isArray(donation.timeline)) donation.timeline = [];
+        donation.timeline.push({
+            event: "NGO Requested",
+            timestamp: new Date(),
+            details: `${ngoTitle} requested to collect this donation.${notes ? ' Note: ' + notes : ''}`,
+            actor: ngoTitle
         });
 
+        await donation.save();
+
+        res.status(200).json({
+            message: "Donation requested successfully! Donor has been notified.",
+            donation: sanitizeDonationForViewer(donation, req.user)
+        });
+    } catch (error) {
+        console.error("Donation request error:", error.message);
+        res.status(500).json({ message: "Server error while requesting donation." });
     }
+}
 
-});
-app.get("/api/crop-donations/:email", async function (req, res) {
+/**
+ * Handle Donor Acceptance transition (REQUESTED -> ACCEPTED)
+ */
+async function handleAcceptDonation(Model, req, res) {
     try {
+        const donation = await Model.findById(req.params.id);
+        if (!donation) {
+            return res.status(404).json({ message: "Donation not found." });
+        }
 
-        const cropDonations =
-            await CropDonation.find({
-                userEmail: req.params.email
-            }).sort({
-                createdAt: -1
+        // Security check: Only the owner may accept
+        if (donation.userEmail.toLowerCase() !== req.user.email) {
+            return res.status(403).json({
+                message: "Unauthorized: You can only accept requests for your own listings."
+            });
+        }
+
+        const currentStatus = (donation.donationStatus || donation.status || "").toLowerCase();
+        if (currentStatus !== "requested") {
+            return res.status(400).json({
+                message: `Donation must be in 'requested' status to accept. Currently '${donation.donationStatus || donation.status}'.`
+            });
+        }
+
+        const { agreedAmount } = req.body;
+        donation.donationStatus = "accepted";
+        donation.status = "Accepted";
+        donation.acceptedAt = new Date();
+
+        if (donation.donationType === "value_based") {
+            const finalAgreed = agreedAmount !== undefined && agreedAmount !== null && agreedAmount !== ""
+                ? Math.max(0, Number(agreedAmount))
+                : (donation.expectedAmount || 0);
+
+            donation.agreedAmount = finalAgreed;
+            donation.paymentStatus = "pending";
+        } else {
+            donation.agreedAmount = 0;
+            donation.expectedAmount = 0;
+            donation.paymentStatus = "not_applicable";
+        }
+
+        if (!Array.isArray(donation.timeline)) donation.timeline = [];
+        donation.timeline.push({
+            event: "Donor Accepted",
+            timestamp: new Date(),
+            details: donation.donationType === "value_based"
+                ? `Donor confirmed request. Agreed value: ₹${donation.agreedAmount} (Expected: ₹${donation.expectedAmount})`
+                : "Donor accepted request for free donation.",
+            actor: donation.donorName || "Donor"
+        });
+
+        await donation.save();
+
+        res.status(200).json({
+            message: "Donation request accepted! Contact details are now available to the assigned NGO to coordinate pickup.",
+            donation: sanitizeDonationForViewer(donation, req.user)
+        });
+    } catch (error) {
+        console.error("Donation accept error:", error.message);
+        res.status(500).json({ message: "Server error while accepting donation." });
+    }
+}
+
+/**
+ * Handle Donor Rejection transition (REQUESTED -> AVAILABLE)
+ */
+async function handleRejectDonation(Model, req, res) {
+    try {
+        const donation = await Model.findById(req.params.id);
+        if (!donation) {
+            return res.status(404).json({ message: "Donation not found." });
+        }
+
+        if (donation.userEmail.toLowerCase() !== req.user.email) {
+            return res.status(403).json({
+                message: "Unauthorized: Only the listing owner can decline requests."
+            });
+        }
+
+        const currentStatus = (donation.donationStatus || donation.status || "").toLowerCase();
+        if (currentStatus !== "requested") {
+            return res.status(400).json({
+                message: `Cannot decline: donation is currently '${donation.donationStatus || donation.status}'.`
+            });
+        }
+
+        donation.donationStatus = "available";
+        donation.status = "Available";
+        const prevNgo = donation.ngoName || "NGO";
+        donation.requestedBy = "";
+        donation.ngoName = "";
+        donation.ngoEmail = "";
+        donation.ngoContact = "";
+
+        if (!Array.isArray(donation.timeline)) donation.timeline = [];
+        donation.timeline.push({
+            event: "Request Declined",
+            timestamp: new Date(),
+            details: `Request from ${prevNgo} was declined. Donation is available again for other organizations.`,
+            actor: donation.donorName || "Donor"
+        });
+
+        await donation.save();
+
+        res.status(200).json({
+            message: "Request declined. Donation returned to Available status.",
+            donation: sanitizeDonationForViewer(donation, req.user)
+        });
+    } catch (error) {
+        console.error("Donation reject error:", error.message);
+        res.status(500).json({ message: "Server error while rejecting donation." });
+    }
+}
+
+/**
+ * Handle Schedule Pickup transition (ACCEPTED -> COLLECTION SCHEDULED)
+ */
+async function handleScheduleDonation(Model, req, res) {
+    try {
+        const donation = await Model.findById(req.params.id);
+        if (!donation) {
+            return res.status(404).json({ message: "Donation not found." });
+        }
+
+        const isDonor = donation.userEmail.toLowerCase() === req.user.email;
+        const isNgo = donation.requestedBy && donation.requestedBy.toLowerCase() === req.user.email;
+
+        if (!isDonor && !isNgo) {
+            return res.status(403).json({
+                message: "Unauthorized: Only the donor or assigned NGO can schedule pickup."
+            });
+        }
+
+        const currentStatus = (donation.donationStatus || donation.status || "").toLowerCase();
+        if (currentStatus !== "accepted" && currentStatus !== "collection_scheduled") {
+            return res.status(400).json({
+                message: "Donation must be in 'accepted' status to schedule pickup."
+            });
+        }
+
+        const { pickupDate, pickupTime, pickupLocation } = req.body;
+        if (!pickupDate || !pickupTime) {
+            return res.status(400).json({
+                message: "Please provide both pickup date and time."
+            });
+        }
+
+        donation.pickupDate = pickupDate;
+        donation.pickupTime = pickupTime;
+        if (pickupLocation) {
+            donation.pickupLocation = pickupLocation.trim();
+        }
+
+        donation.donationStatus = "collection_scheduled";
+        donation.status = "Collection Scheduled";
+
+        if (!Array.isArray(donation.timeline)) donation.timeline = [];
+        donation.timeline.push({
+            event: "Pickup Scheduled",
+            timestamp: new Date(),
+            details: `Pickup scheduled for ${pickupDate} at ${pickupTime}. Location: ${donation.pickupLocation || donation.location}`,
+            actor: isDonor ? (donation.donorName || "Donor") : (donation.ngoName || "NGO")
+        });
+
+        await donation.save();
+
+        res.status(200).json({
+            message: "Collection pickup scheduled successfully!",
+            donation: sanitizeDonationForViewer(donation, req.user)
+        });
+    } catch (error) {
+        console.error("Donation scheduling error:", error.message);
+        res.status(500).json({ message: "Server error while scheduling pickup." });
+    }
+}
+
+/**
+ * Handle Confirm Collection transition (COLLECTION SCHEDULED -> COLLECTED)
+ * ONLY the authorized requesting NGO can confirm collection!
+ */
+async function handleCollectDonation(Model, req, res) {
+    try {
+        const donation = await Model.findById(req.params.id);
+        if (!donation) {
+            return res.status(404).json({ message: "Donation not found." });
+        }
+
+        if (!donation.requestedBy || donation.requestedBy.toLowerCase() !== req.user.email) {
+            return res.status(403).json({
+                message: "Unauthorized: Only the assigned NGO can confirm physical collection of this donation."
+            });
+        }
+
+        const currentStatus = (donation.donationStatus || donation.status || "").toLowerCase();
+        if (currentStatus !== "collection_scheduled" && currentStatus !== "accepted") {
+            return res.status(400).json({
+                message: `Donation must be accepted or scheduled before confirming collection. Currently '${donation.donationStatus || donation.status}'.`
+            });
+        }
+
+        donation.donationStatus = "collected";
+        donation.status = "Collected";
+        donation.collectedAt = new Date();
+
+        if (!Array.isArray(donation.timeline)) donation.timeline = [];
+        donation.timeline.push({
+            event: "Food Collected",
+            timestamp: new Date(),
+            details: `Items successfully collected in person by ${donation.ngoName || 'NGO'}.`,
+            actor: donation.ngoName || "NGO"
+        });
+
+        await donation.save();
+
+        res.status(200).json({
+            message: "Collection confirmed successfully! Donor has been notified.",
+            donation: sanitizeDonationForViewer(donation, req.user)
+        });
+    } catch (error) {
+        console.error("Donation collection error:", error.message);
+        res.status(500).json({ message: "Server error while confirming collection." });
+    }
+}
+
+/**
+ * Handle Payment Recording for value-based donations
+ */
+async function handlePaymentDonation(Model, req, res) {
+    try {
+        const donation = await Model.findById(req.params.id);
+        if (!donation) {
+            return res.status(404).json({ message: "Donation not found." });
+        }
+
+        const isDonor = donation.userEmail.toLowerCase() === req.user.email;
+        const isNgo = donation.requestedBy && donation.requestedBy.toLowerCase() === req.user.email;
+        if (!isDonor && !isNgo) {
+            return res.status(403).json({ message: "Unauthorized: Only transaction participants can record payment." });
+        }
+
+        if (donation.donationType !== "value_based") {
+            return res.status(400).json({
+                message: "This is a free community donation (₹0). Payment tracking is not applicable."
+            });
+        }
+
+        const { method, notes } = req.body;
+        const paymentResult = await paymentService.recordPayment(donation, {
+            amount: donation.agreedAmount || donation.expectedAmount,
+            method: method || "Cash / Direct Reimbursement",
+            notes: notes || "Payment confirmed by participants.",
+            recordedBy: req.user.email
+        });
+
+        donation.paymentStatus = "paid";
+        donation.paymentRecordedAt = new Date();
+
+        if (!Array.isArray(donation.timeline)) donation.timeline = [];
+        donation.timeline.push({
+            event: "Payment Recorded",
+            timestamp: new Date(),
+            details: `Payment of ₹${donation.agreedAmount || donation.expectedAmount} recorded (${paymentResult.method}). Ref: ${paymentResult.transactionId}`,
+            actor: "Payment Service"
+        });
+
+        await donation.save();
+
+        res.status(200).json({
+            message: "Payment successfully recorded!",
+            paymentResult: paymentResult,
+            donation: sanitizeDonationForViewer(donation, req.user)
+        });
+    } catch (error) {
+        console.error("Donation payment error:", error.message);
+        res.status(500).json({ message: "Server error while recording payment." });
+    }
+}
+
+/**
+ * Handle Final Completion (COLLECTED -> COMPLETED)
+ */
+async function handleCompleteDonation(Model, req, res) {
+    try {
+        const donation = await Model.findById(req.params.id);
+        if (!donation) {
+            return res.status(404).json({ message: "Donation not found." });
+        }
+
+        const isDonor = donation.userEmail.toLowerCase() === req.user.email;
+        const isNgo = donation.requestedBy && donation.requestedBy.toLowerCase() === req.user.email;
+        if (!isDonor && !isNgo) {
+            return res.status(403).json({ message: "Unauthorized: Only transaction participants can complete this donation." });
+        }
+
+        const currentStatus = (donation.donationStatus || donation.status || "").toLowerCase();
+        if (currentStatus !== "collected") {
+            return res.status(400).json({
+                message: `Donation must be collected before marking as completed. Currently '${donation.donationStatus || donation.status}'.`
+            });
+        }
+
+        donation.donationStatus = "completed";
+        donation.status = "Completed";
+        donation.completedAt = new Date();
+
+        if (!donation.receiptId) {
+            donation.receiptId = paymentService.generateReceiptId(donation._id);
+        }
+
+        if (!Array.isArray(donation.timeline)) donation.timeline = [];
+        donation.timeline.push({
+            event: "Completed",
+            timestamp: new Date(),
+            details: `Donation transaction fully completed. Receipt ID: ${donation.receiptId}`,
+            actor: donation.donorName || "Donor"
+        });
+
+        await donation.save();
+
+        res.status(200).json({
+            message: "Donation transaction completed successfully! Receipt generated.",
+            donation: sanitizeDonationForViewer(donation, req.user)
+        });
+    } catch (error) {
+        console.error("Donation complete error:", error.message);
+        res.status(500).json({ message: "Server error while completing donation." });
+    }
+}
+
+/**
+ * Handle Cancellation
+ * Supports both:
+ * 1. NGO cancelling their active pending request -> reverts listing to 'available'
+ * 2. Donor withdrawing their available or requested listing -> marks listing 'cancelled'
+ * Disallows cancelling completed or collected transactions.
+ */
+async function handleCancelDonation(Model, req, res) {
+    try {
+        const donation = await Model.findById(req.params.id);
+        if (!donation) {
+            return res.status(404).json({ message: "Donation not found." });
+        }
+
+        const isDonor = donation.userEmail.toLowerCase() === req.user.email;
+        const isAssignedNgo = donation.requestedBy && donation.requestedBy.toLowerCase() === req.user.email;
+
+        if (!isDonor && !isAssignedNgo) {
+            return res.status(403).json({
+                message: "Unauthorized: Only the listing donor or assigned NGO can cancel this donation."
+            });
+        }
+
+        const currentStatus = (donation.donationStatus || donation.status || "").toLowerCase();
+        if (currentStatus === "completed" || currentStatus === "collected") {
+            return res.status(400).json({
+                message: "Cannot cancel a donation that has already been collected or completed."
+            });
+        }
+
+        const { reason } = req.body;
+
+        // NGO cancels their pending request
+        if (isAssignedNgo && !isDonor) {
+            if (currentStatus !== "requested" && currentStatus !== "accepted") {
+                return res.status(400).json({
+                    message: "NGO can only withdraw active pending or accepted requests before pickup."
+                });
+            }
+
+            const prevNgo = donation.ngoName || "NGO";
+            donation.donationStatus = "available";
+            donation.status = "Available";
+            donation.requestedBy = "";
+            donation.ngoName = "";
+            donation.ngoEmail = "";
+            donation.ngoContact = "";
+
+            if (!Array.isArray(donation.timeline)) donation.timeline = [];
+            donation.timeline.push({
+                event: "NGO Request Cancelled",
+                timestamp: new Date(),
+                details: `${prevNgo} cancelled their collection request${reason ? ': ' + reason : ''}. Listing is available again.`,
+                actor: prevNgo
             });
 
-        res.status(200).json(cropDonations);
+            await donation.save();
+            return res.status(200).json({
+                message: "Your request has been cancelled. Donation returned to the available marketplace.",
+                donation: sanitizeDonationForViewer(donation, req.user)
+            });
+        }
 
-    } catch (error) {
+        // Donor withdraws their listing
+        if (isDonor) {
+            donation.donationStatus = "cancelled";
+            donation.status = "Cancelled";
+            donation.cancelledAt = new Date();
 
-        console.log(
-            "Crop donation loading error:",
-            error.message
-        );
-
-        res.status(500).json({
-            message:
-                "Server error while loading crop donations."
-        });
-    }
-});
-app.get("/api/crop-donations", async function (req, res) {
-    try {
-
-        const cropDonations =
-            await CropDonation.find({
-                status: "Available"
-            }).sort({
-                createdAt: -1
+            if (!Array.isArray(donation.timeline)) donation.timeline = [];
+            donation.timeline.push({
+                event: "Donation Withdrawn",
+                timestamp: new Date(),
+                details: reason ? `Withdrawn: ${reason}` : "Donation listing withdrawn by donor.",
+                actor: donation.donorName || "Donor"
             });
 
-        res.status(200).json(cropDonations);
-
+            await donation.save();
+            return res.status(200).json({
+                message: "Donation listing has been cancelled.",
+                donation: sanitizeDonationForViewer(donation, req.user)
+            });
+        }
     } catch (error) {
+        console.error("Donation cancellation error:", error.message);
+        res.status(500).json({ message: "Server error while cancelling donation." });
+    }
+}
 
-        console.log(
-            "All crop donation loading error:",
-            error.message
-        );
+/* ========================================================
+   FOOD DONATION ROUTE DEFINITIONS
+======================================================== */
 
-        res.status(500).json({
-            message:
-                "Server error while loading crop donations."
-        });
+// Create a new food donation
+app.post("/api/donations", authenticateToken, (req, res) => handleCreateDonation(Donation, req, res, false));
+
+// Get all food donations (with optional filters) - Contact numbers sanitized before acceptance
+app.get("/api/donations", optionalAuth, async function (req, res) {
+    try {
+        const { status } = req.query;
+        let query = {};
+
+        if (status && status !== "all") {
+            query.$or = [
+                { donationStatus: status.toLowerCase() },
+                { status: status }
+            ];
+        }
+
+        const donations = await Donation.find(query).sort({ createdAt: -1 });
+        const sanitized = donations.map(d => sanitizeDonationForViewer(d, req.user));
+        res.status(200).json(sanitized);
+    } catch (error) {
+        console.error("All donation loading error:", error.message);
+        res.status(500).json({ message: "Server error while loading donations." });
     }
 });
+
+// Single food donation by ID
+app.get("/api/donations/item/:id", optionalAuth, async function (req, res) {
+    try {
+        const donation = await Donation.findById(req.params.id);
+        if (!donation) return res.status(404).json({ message: "Donation not found." });
+        res.status(200).json(sanitizeDonationForViewer(donation, req.user));
+    } catch (error) {
+        res.status(500).json({ message: "Server error loading donation." });
+    }
+});
+
+// Get donations by user email (Donor) - Protected, owner only
+app.get("/api/donations/user/:email", authenticateToken, async function (req, res) {
+    try {
+        const email = req.params.email.toLowerCase().trim();
+        if (req.user.email !== email) {
+            return res.status(403).json({ message: "Unauthorized: You can only view your own donations." });
+        }
+        const donations = await Donation.find({ userEmail: email }).sort({ createdAt: -1 });
+        res.status(200).json(donations);
+    } catch (error) {
+        res.status(500).json({ message: "Server error loading user donations." });
+    }
+});
+
+// Backward-compatible user email endpoint
+app.get("/api/donations/:email", authenticateToken, async function (req, res) {
+    try {
+        const email = req.params.email.toLowerCase().trim();
+        if (req.user.email !== email) {
+            return res.status(403).json({ message: "Unauthorized: You can only view your own donations." });
+        }
+        const donations = await Donation.find({ userEmail: email }).sort({ createdAt: -1 });
+        res.status(200).json(donations);
+    } catch (error) {
+        res.status(500).json({ message: "Server error loading donations." });
+    }
+});
+
+// Get donations associated with an NGO - Protected, assigned NGO only
+app.get("/api/donations/ngo/:email", authenticateToken, async function (req, res) {
+    try {
+        const email = req.params.email.toLowerCase().trim();
+        if (req.user.email !== email) {
+            return res.status(403).json({ message: "Unauthorized: You can only view assignments for your own NGO." });
+        }
+        const donations = await Donation.find({ requestedBy: email }).sort({ createdAt: -1 });
+        const sanitized = donations.map(d => sanitizeDonationForViewer(d, req.user));
+        res.status(200).json(sanitized);
+    } catch (error) {
+        res.status(500).json({ message: "Server error loading NGO donations." });
+    }
+});
+
+// Food donation state transitions
+app.put("/api/donations/:id/request", authenticateToken, (req, res) => handleRequestDonation(Donation, req, res));
+app.put("/api/donations/:id/accept", authenticateToken, (req, res) => handleAcceptDonation(Donation, req, res));
+app.put("/api/donations/:id/reject", authenticateToken, (req, res) => handleRejectDonation(Donation, req, res));
+app.put("/api/donations/:id/schedule", authenticateToken, (req, res) => handleScheduleDonation(Donation, req, res));
+app.put("/api/donations/:id/collect", authenticateToken, (req, res) => handleCollectDonation(Donation, req, res));
+app.put("/api/donations/:id/payment", authenticateToken, (req, res) => handlePaymentDonation(Donation, req, res));
+app.put("/api/donations/:id/complete", authenticateToken, (req, res) => handleCompleteDonation(Donation, req, res));
+app.put("/api/donations/:id/cancel", authenticateToken, (req, res) => handleCancelDonation(Donation, req, res));
+
+/* ========================================================
+   CROP DONATION ROUTE DEFINITIONS
+======================================================== */
+
+// Create a new crop donation
+app.post("/api/crop-donations", authenticateToken, (req, res) => handleCreateDonation(CropDonation, req, res, true));
+
+// Get all crop donations (with optional filters) - Contact numbers sanitized before acceptance
+app.get("/api/crop-donations", optionalAuth, async function (req, res) {
+    try {
+        const { status } = req.query;
+        let query = {};
+
+        if (status && status !== "all") {
+            query.$or = [
+                { donationStatus: status.toLowerCase() },
+                { status: status }
+            ];
+        }
+
+        const cropDonations = await CropDonation.find(query).sort({ createdAt: -1 });
+        const sanitized = cropDonations.map(d => sanitizeDonationForViewer(d, req.user));
+        res.status(200).json(sanitized);
+    } catch (error) {
+        console.error("Crop donation loading error:", error.message);
+        res.status(500).json({ message: "Server error while loading crop donations." });
+    }
+});
+
+// Single crop donation by ID
+app.get("/api/crop-donations/item/:id", optionalAuth, async function (req, res) {
+    try {
+        const donation = await CropDonation.findById(req.params.id);
+        if (!donation) return res.status(404).json({ message: "Crop donation not found." });
+        res.status(200).json(sanitizeDonationForViewer(donation, req.user));
+    } catch (error) {
+        res.status(500).json({ message: "Server error loading crop donation." });
+    }
+});
+
+// Get crop donations by user email (Farmer) - Protected, owner only
+app.get("/api/crop-donations/user/:email", authenticateToken, async function (req, res) {
+    try {
+        const email = req.params.email.toLowerCase().trim();
+        if (req.user.email !== email) {
+            return res.status(403).json({ message: "Unauthorized: You can only view your own crop donations." });
+        }
+        const cropDonations = await CropDonation.find({ userEmail: email }).sort({ createdAt: -1 });
+        res.status(200).json(cropDonations);
+    } catch (error) {
+        res.status(500).json({ message: "Server error loading farmer crop donations." });
+    }
+});
+
+// Backward-compatible crop donations user email endpoint
+app.get("/api/crop-donations/:email", authenticateToken, async function (req, res) {
+    try {
+        const email = req.params.email.toLowerCase().trim();
+        if (req.user.email !== email) {
+            return res.status(403).json({ message: "Unauthorized: You can only view your own crop donations." });
+        }
+        const cropDonations = await CropDonation.find({ userEmail: email }).sort({ createdAt: -1 });
+        res.status(200).json(cropDonations);
+    } catch (error) {
+        res.status(500).json({ message: "Server error loading crop donations." });
+    }
+});
+
+// Get crop donations associated with an NGO - Protected, assigned NGO only
+app.get("/api/crop-donations/ngo/:email", authenticateToken, async function (req, res) {
+    try {
+        const email = req.params.email.toLowerCase().trim();
+        if (req.user.email !== email) {
+            return res.status(403).json({ message: "Unauthorized: You can only view assignments for your own NGO." });
+        }
+        const cropDonations = await CropDonation.find({ requestedBy: email }).sort({ createdAt: -1 });
+        const sanitized = cropDonations.map(d => sanitizeDonationForViewer(d, req.user));
+        res.status(200).json(sanitized);
+    } catch (error) {
+        res.status(500).json({ message: "Server error loading NGO crop donations." });
+    }
+});
+
+// Crop donation state transitions
+app.put("/api/crop-donations/:id/request", authenticateToken, (req, res) => handleRequestDonation(CropDonation, req, res));
+app.put("/api/crop-donations/:id/accept", authenticateToken, (req, res) => handleAcceptDonation(CropDonation, req, res));
+app.put("/api/crop-donations/:id/reject", authenticateToken, (req, res) => handleRejectDonation(CropDonation, req, res));
+app.put("/api/crop-donations/:id/schedule", authenticateToken, (req, res) => handleScheduleDonation(CropDonation, req, res));
+app.put("/api/crop-donations/:id/collect", authenticateToken, (req, res) => handleCollectDonation(CropDonation, req, res));
+app.put("/api/crop-donations/:id/payment", authenticateToken, (req, res) => handlePaymentDonation(CropDonation, req, res));
+app.put("/api/crop-donations/:id/complete", authenticateToken, (req, res) => handleCompleteDonation(CropDonation, req, res));
+app.put("/api/crop-donations/:id/cancel", authenticateToken, (req, res) => handleCancelDonation(CropDonation, req, res));
+
+/* ========================================================
+   DASHBOARD ANALYTICS & STATS APIS
+======================================================== */
+
+// Donor Dashboard Statistics (Protected, owner only)
+app.get("/api/stats/donor/:email", authenticateToken, async function (req, res) {
+    try {
+        const email = req.params.email.toLowerCase().trim();
+        if (req.user.email !== email) {
+            return res.status(403).json({ message: "Unauthorized: You can only view your own statistics." });
+        }
+
+        const foodDonations = await Donation.find({ userEmail: email });
+        const cropDonations = await CropDonation.find({ userEmail: email });
+        const allDonations = [...foodDonations, ...cropDonations];
+
+        const totalDonations = allDonations.length;
+        const foodDonatedKg = foodDonations.reduce((sum, d) => sum + (Number(d.quantity) || 0), 0);
+        const cropDonatedKg = cropDonations.reduce((sum, d) => sum + (Number(d.quantity) || 0), 0);
+
+        const totalDonationValue = allDonations.reduce((sum, d) => {
+            const val = d.agreedAmount || d.expectedAmount || 0;
+            return sum + (Number(val) || 0);
+        }, 0);
+
+        const completedDonations = allDonations.filter(d =>
+            (d.donationStatus || d.status || "").toLowerCase() === "completed"
+        ).length;
+
+        const activeDonations = allDonations.filter(d =>
+            !["completed", "cancelled"].includes((d.donationStatus || d.status || "").toLowerCase())
+        ).length;
+
+        const pendingPayments = allDonations.filter(d =>
+            d.donationType === "value_based" && d.paymentStatus === "pending"
+        ).reduce((sum, d) => sum + (Number(d.agreedAmount || d.expectedAmount) || 0), 0);
+
+        res.status(200).json({
+            totalDonations,
+            activeDonations,
+            foodDonatedKg,
+            cropDonatedKg,
+            totalDonationValue,
+            completedDonations,
+            pendingPayments
+        });
+    } catch (error) {
+        console.error("Donor stats error:", error.message);
+        res.status(500).json({ message: "Server error calculating stats." });
+    }
+});
+
+// NGO Dashboard Statistics (Protected, assigned NGO only)
+app.get("/api/stats/ngo/:email", authenticateToken, async function (req, res) {
+    try {
+        const email = req.params.email.toLowerCase().trim();
+        if (req.user.email !== email) {
+            return res.status(403).json({ message: "Unauthorized: You can only view your own NGO statistics." });
+        }
+
+        const foodDonations = await Donation.find({ requestedBy: email });
+        const cropDonations = await CropDonation.find({ requestedBy: email });
+        const allAssigned = [...foodDonations, ...cropDonations];
+
+        const donationsRequested = allAssigned.filter(d =>
+            (d.donationStatus || d.status || "").toLowerCase() === "requested"
+        ).length;
+
+        const donationsAccepted = allAssigned.filter(d =>
+            ["accepted", "collection_scheduled"].includes((d.donationStatus || d.status || "").toLowerCase())
+        ).length;
+
+        const donationsCollected = allAssigned.filter(d =>
+            (d.donationStatus || d.status || "").toLowerCase() === "collected"
+        ).length;
+
+        const donationsCompleted = allAssigned.filter(d =>
+            (d.donationStatus || d.status || "").toLowerCase() === "completed"
+        ).length;
+
+        const totalFoodReceivedKg = foodDonations.filter(d =>
+            ["collected", "completed"].includes((d.donationStatus || d.status || "").toLowerCase())
+        ).reduce((sum, d) => sum + (Number(d.quantity) || 0), 0);
+
+        const totalCropReceivedKg = cropDonations.filter(d =>
+            ["collected", "completed"].includes((d.donationStatus || d.status || "").toLowerCase())
+        ).reduce((sum, d) => sum + (Number(d.quantity) || 0), 0);
+
+        const totalValue = allAssigned.filter(d =>
+            ["collected", "completed"].includes((d.donationStatus || d.status || "").toLowerCase())
+        ).reduce((sum, d) => sum + (Number(d.agreedAmount || d.expectedAmount) || 0), 0);
+
+        res.status(200).json({
+            donationsRequested,
+            donationsAccepted,
+            donationsCollected,
+            donationsCompleted,
+            totalFoodReceivedKg,
+            totalCropReceivedKg,
+            totalValue
+        });
+    } catch (error) {
+        console.error("NGO stats error:", error.message);
+        res.status(500).json({ message: "Server error calculating NGO stats." });
+    }
+});
+
+// Friendly routes for frontend pages
+app.get("/login", (req, res) => {
+    res.sendFile(path.join(__dirname, "../public/login.html"));
+});
+app.get("/register", (req, res) => {
+    res.sendFile(path.join(__dirname, "../public/register.html"));
+});
+app.get("/dashboard", (req, res) => {
+    res.sendFile(path.join(__dirname, "../public/dashboard.html"));
+});
+
+// Render / Cloud Health Check
+app.get("/health", (req, res) => {
+    res.status(200).json({
+        status: "healthy",
+        uptime: process.uptime(),
+        storageEngine: db.isUsingLocalDb ? "Local High-Reliability Store" : "MongoDB Atlas Cluster",
+        timestamp: new Date().toISOString()
+    });
+});
+
+// Client SPA / page fallback: send index.html for non-API routes
+app.use(function (req, res, next) {
+    if (req.method === "GET" && !req.path.startsWith("/api/")) {
+        return res.sendFile(path.join(__dirname, "../public/index.html"));
+    }
+    next();
+});
+
 // Start server
-app.listen(PORT, function () {
-
-    console.log(
-        `🌱 Zero Waste backend running at http://localhost:${PORT}`
-    );
-
+app.listen(PORT, "0.0.0.0", function () {
+    console.log(`🌱 ZeroWaste backend running on port ${PORT} (0.0.0.0)`);
 });

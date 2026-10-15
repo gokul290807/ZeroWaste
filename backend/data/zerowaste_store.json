@@ -1,0 +1,877 @@
+{
+  "users": [
+    {
+      "name": "gokul",
+      "email": "gokul1234@gmail.com",
+      "password": "$2b$10$WRK6ShmGHT9YVSJkfP3hUOJpAfq9e2At6I1mgATpoTE7s6snuVwgi",
+      "role": "household",
+      "contactNumber": "8807043725",
+      "address": "coimbatore",
+      "_id": "use_1791919426577_903",
+      "createdAt": "2026-10-13T19:23:46.577Z"
+    },
+    {
+      "name": "New Test Donor",
+      "email": "newtestuser_1791918609781@example.com",
+      "password": "$2b$10$ueKjwtYqaseV2UFTZWvJ/.Yhvb.QVSJ46CLsfiWnBAXSJUBlfSePO",
+      "role": "household",
+      "contactNumber": "+91 99999 88888",
+      "address": "123 New Road, Coimbatore",
+      "_id": "use_1791918609889_7",
+      "createdAt": "2026-10-13T19:10:09.889Z"
+    },
+    {
+      "_id": "usr_rahul_01",
+      "name": "Rahul Sharma",
+      "email": "rahul@gmail.com",
+      "password": "$2b$10$Y.3Swg0yQvHMIxpRV7F8d.racf6BcKdOsMp3SfGXHBDdr1i28jgmW",
+      "role": "household",
+      "contactNumber": "+91 98765 43210",
+      "address": "45 Gandhi Road, RS Puram, Coimbatore",
+      "createdAt": "2026-10-05T09:27:53.831Z"
+    },
+    {
+      "_id": "usr_suresh_02",
+      "name": "Suresh Patel",
+      "email": "suresh@farmer.com",
+      "password": "$2b$10$Y.3Swg0yQvHMIxpRV7F8d.racf6BcKdOsMp3SfGXHBDdr1i28jgmW",
+      "role": "farmer",
+      "contactNumber": "+91 98123 45678",
+      "address": "Farm Sector 4, Pollachi, Coimbatore",
+      "createdAt": "2026-10-05T09:27:53.832Z"
+    },
+    {
+      "_id": "usr_ngo_03",
+      "name": "Helping Hands NGO",
+      "email": "ngo@helpinghands.org",
+      "password": "$2b$10$Y.3Swg0yQvHMIxpRV7F8d.racf6BcKdOsMp3SfGXHBDdr1i28jgmW",
+      "role": "ngo",
+      "contactNumber": "+91 91234 56789",
+      "address": "ZeroWaste Community Center, Coimbatore",
+      "createdAt": "2026-10-05T09:27:53.832Z"
+    }
+  ],
+  "foods": [
+    {
+      "userEmail": "gokul1234@gmail.com",
+      "name": "bread",
+      "quantity": 2,
+      "unit": "packet",
+      "expiryDate": "2026-10-15",
+      "category": "Household Stock",
+      "_id": "foo_1791919451819_150",
+      "createdAt": "2026-10-13T19:24:11.819Z"
+    },
+    {
+      "_id": "food_tomato_01",
+      "userEmail": "rahul@gmail.com",
+      "name": "Fresh Tomatoes",
+      "quantity": 10,
+      "unit": "kg",
+      "expiryDate": "2026-10-15",
+      "category": "Vegetables",
+      "createdAt": "2026-10-05T09:27:53.832Z"
+    },
+    {
+      "_id": "food_biryani_02",
+      "userEmail": "rahul@gmail.com",
+      "name": "Vegetable Biryani",
+      "quantity": 5,
+      "unit": "packets",
+      "expiryDate": "2026-10-06",
+      "category": "Cooked Meals",
+      "createdAt": "2026-10-05T09:27:53.832Z"
+    }
+  ],
+  "crops": [
+    {
+      "_id": "crop_wheat_01",
+      "userEmail": "suresh@farmer.com",
+      "name": "Organic Wheat",
+      "quantity": 50,
+      "unit": "kg",
+      "date": "2026-10-25",
+      "location": "Pollachi, Coimbatore",
+      "description": "Freshly harvested organic wheat, dry and packaged.",
+      "status": "Available",
+      "createdAt": "2026-10-05T09:27:53.832Z"
+    }
+  ],
+  "donations": [
+    {
+      "userEmail": "gokul1234@gmail.com",
+      "donorName": "gokul",
+      "donorEmail": "gokul1234@gmail.com",
+      "donorContact": "8807043725",
+      "quantity": 2,
+      "unit": "packets",
+      "category": "Household Surplus",
+      "location": "coimbatore",
+      "pickupLocation": "coimbatore",
+      "description": "",
+      "photo": "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=600&auto=format&fit=crop&q=60",
+      "date": "14/10/2026",
+      "donationType": "value_based",
+      "expectedAmount": 25,
+      "agreedAmount": 0,
+      "paymentStatus": "not_applicable",
+      "donationStatus": "available",
+      "status": "Available",
+      "timeline": [
+        {
+          "event": "Food Donation Created",
+          "timestamp": "2026-10-13T19:24:44.464Z",
+          "details": "Value-Based donation listed with expected value of ₹25",
+          "actor": "gokul"
+        }
+      ],
+      "foodId": "foo_1791919451819_150",
+      "foodName": "bread",
+      "_id": "don_1791919484464_576",
+      "createdAt": "2026-10-13T19:24:44.464Z"
+    },
+    {
+      "userEmail": "rahul@gmail.com",
+      "donorName": "Rahul Sharma",
+      "donorEmail": "rahul@gmail.com",
+      "donorContact": "+91 98765 43210",
+      "quantity": 5,
+      "unit": "kg",
+      "category": "Household Surplus",
+      "location": "Gandhipuram",
+      "pickupLocation": "Gandhipuram",
+      "description": "",
+      "photo": "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=500&auto=format&fit=crop&q=60",
+      "date": "14/10/2026",
+      "donationType": "free",
+      "expectedAmount": 0,
+      "agreedAmount": 0,
+      "paymentStatus": "not_applicable",
+      "donationStatus": "available",
+      "status": "Available",
+      "timeline": [
+        {
+          "event": "Food Donation Created",
+          "timestamp": "2026-10-13T19:20:08.157Z",
+          "details": "Free community donation listed for immediate redistribution (₹0)",
+          "actor": "Rahul Sharma"
+        },
+        {
+          "event": "NGO Requested",
+          "timestamp": "2026-10-13T19:20:08.162Z",
+          "details": "Helping Hands NGO requested to collect this donation.",
+          "actor": "Helping Hands NGO"
+        },
+        {
+          "event": "NGO Request Cancelled",
+          "timestamp": "2026-10-13T19:20:08.204Z",
+          "details": "Helping Hands NGO cancelled their collection request: Vehicle broke down. Listing is available again.",
+          "actor": "Helping Hands NGO"
+        }
+      ],
+      "foodId": "",
+      "foodName": "Surplus Apples",
+      "_id": "don_1791919208157_246",
+      "createdAt": "2026-10-13T19:20:08.157Z",
+      "requestedBy": "",
+      "ngoName": "",
+      "ngoEmail": "",
+      "ngoContact": "",
+      "requestedAt": "2026-10-13T19:20:08.162Z"
+    },
+    {
+      "userEmail": "rahul@gmail.com",
+      "donorName": "Rahul Sharma",
+      "donorEmail": "rahul@gmail.com",
+      "donorContact": "+91 98765 43210",
+      "quantity": 15,
+      "unit": "kg",
+      "category": "Fruits",
+      "location": "RS Puram, Coimbatore",
+      "pickupLocation": "RS Puram, Coimbatore",
+      "description": "",
+      "photo": "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=500&auto=format&fit=crop&q=60",
+      "date": "14/10/2026",
+      "donationType": "value_based",
+      "expectedAmount": 450,
+      "agreedAmount": 400,
+      "paymentStatus": "paid",
+      "donationStatus": "completed",
+      "status": "Completed",
+      "timeline": [
+        {
+          "event": "Food Donation Created",
+          "timestamp": "2026-10-13T19:20:08.113Z",
+          "details": "Value-Based donation listed with expected value of ₹450",
+          "actor": "Rahul Sharma"
+        },
+        {
+          "event": "NGO Requested",
+          "timestamp": "2026-10-13T19:20:08.120Z",
+          "details": "Helping Hands NGO requested to collect this donation. Note: We will collect with our distribution van.",
+          "actor": "Helping Hands NGO"
+        },
+        {
+          "event": "Donor Accepted",
+          "timestamp": "2026-10-13T19:20:08.130Z",
+          "details": "Donor confirmed request. Agreed value: ₹400 (Expected: ₹450)",
+          "actor": "Rahul Sharma"
+        },
+        {
+          "event": "Pickup Scheduled",
+          "timestamp": "2026-10-13T19:20:08.137Z",
+          "details": "Pickup scheduled for 2026-10-15 at 4:30 PM. Location: RS Puram, Coimbatore",
+          "actor": "Helping Hands NGO"
+        },
+        {
+          "event": "Food Collected",
+          "timestamp": "2026-10-13T19:20:08.143Z",
+          "details": "Items successfully collected in person by Helping Hands NGO.",
+          "actor": "Helping Hands NGO"
+        },
+        {
+          "event": "Payment Recorded",
+          "timestamp": "2026-10-13T19:20:08.148Z",
+          "details": "Payment of ₹400 recorded (Direct Cash Reimbursement on Pickup). Ref: ZW-TXN-MV72FHZO-7586",
+          "actor": "Payment Service"
+        },
+        {
+          "event": "Completed",
+          "timestamp": "2026-10-13T19:20:08.151Z",
+          "details": "Donation transaction fully completed. Receipt ID: ZW-2026-13_528",
+          "actor": "Rahul Sharma"
+        }
+      ],
+      "foodId": "",
+      "foodName": "Organic Mangoes",
+      "_id": "don_1791919208113_528",
+      "createdAt": "2026-10-13T19:20:08.113Z",
+      "requestedBy": "ngo@helpinghands.org",
+      "ngoName": "Helping Hands NGO",
+      "ngoEmail": "ngo@helpinghands.org",
+      "ngoContact": "+91 91234 56789",
+      "requestedAt": "2026-10-13T19:20:08.120Z",
+      "acceptedAt": "2026-10-13T19:20:08.130Z",
+      "pickupDate": "2026-10-15",
+      "pickupTime": "4:30 PM",
+      "collectedAt": "2026-10-13T19:20:08.143Z",
+      "paymentRecordedAt": "2026-10-13T19:20:08.148Z",
+      "completedAt": "2026-10-13T19:20:08.151Z",
+      "receiptId": "ZW-2026-13_528"
+    },
+    {
+      "userEmail": "rahul@gmail.com",
+      "donorName": "Rahul Sharma",
+      "donorEmail": "rahul@gmail.com",
+      "donorContact": "+91 98765 43210",
+      "quantity": 5,
+      "unit": "kg",
+      "category": "Household Surplus",
+      "location": "Gandhipuram",
+      "pickupLocation": "Gandhipuram",
+      "description": "",
+      "photo": "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=500&auto=format&fit=crop&q=60",
+      "date": "14/10/2026",
+      "donationType": "free",
+      "expectedAmount": 0,
+      "agreedAmount": 0,
+      "paymentStatus": "not_applicable",
+      "donationStatus": "available",
+      "status": "Available",
+      "timeline": [
+        {
+          "event": "Food Donation Created",
+          "timestamp": "2026-10-13T19:12:37.146Z",
+          "details": "Free community donation listed for immediate redistribution (₹0)",
+          "actor": "Rahul Sharma"
+        },
+        {
+          "event": "NGO Requested",
+          "timestamp": "2026-10-13T19:12:37.150Z",
+          "details": "Helping Hands NGO requested to collect this donation.",
+          "actor": "Helping Hands NGO"
+        },
+        {
+          "event": "NGO Request Cancelled",
+          "timestamp": "2026-10-13T19:12:37.153Z",
+          "details": "Helping Hands NGO cancelled their collection request: Vehicle broke down. Listing is available again.",
+          "actor": "Helping Hands NGO"
+        }
+      ],
+      "foodId": "",
+      "foodName": "Surplus Apples",
+      "_id": "don_1791918757146_123",
+      "createdAt": "2026-10-13T19:12:37.146Z",
+      "requestedBy": "",
+      "ngoName": "",
+      "ngoEmail": "",
+      "ngoContact": "",
+      "requestedAt": "2026-10-13T19:12:37.150Z"
+    },
+    {
+      "userEmail": "rahul@gmail.com",
+      "donorName": "Rahul Sharma",
+      "donorEmail": "rahul@gmail.com",
+      "donorContact": "+91 98765 43210",
+      "quantity": 15,
+      "unit": "kg",
+      "category": "Fruits",
+      "location": "RS Puram, Coimbatore",
+      "pickupLocation": "RS Puram, Coimbatore",
+      "description": "",
+      "photo": "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=500&auto=format&fit=crop&q=60",
+      "date": "14/10/2026",
+      "donationType": "value_based",
+      "expectedAmount": 450,
+      "agreedAmount": 400,
+      "paymentStatus": "paid",
+      "donationStatus": "completed",
+      "status": "Completed",
+      "timeline": [
+        {
+          "event": "Food Donation Created",
+          "timestamp": "2026-10-13T19:12:37.091Z",
+          "details": "Value-Based donation listed with expected value of ₹450",
+          "actor": "Rahul Sharma"
+        },
+        {
+          "event": "NGO Requested",
+          "timestamp": "2026-10-13T19:12:37.102Z",
+          "details": "Helping Hands NGO requested to collect this donation. Note: We will collect with our distribution van.",
+          "actor": "Helping Hands NGO"
+        },
+        {
+          "event": "Donor Accepted",
+          "timestamp": "2026-10-13T19:12:37.115Z",
+          "details": "Donor confirmed request. Agreed value: ₹400 (Expected: ₹450)",
+          "actor": "Rahul Sharma"
+        },
+        {
+          "event": "Pickup Scheduled",
+          "timestamp": "2026-10-13T19:12:37.123Z",
+          "details": "Pickup scheduled for 2026-10-15 at 4:30 PM. Location: RS Puram, Coimbatore",
+          "actor": "Helping Hands NGO"
+        },
+        {
+          "event": "Food Collected",
+          "timestamp": "2026-10-13T19:12:37.130Z",
+          "details": "Items successfully collected in person by Helping Hands NGO.",
+          "actor": "Helping Hands NGO"
+        },
+        {
+          "event": "Payment Recorded",
+          "timestamp": "2026-10-13T19:12:37.134Z",
+          "details": "Payment of ₹400 recorded (Direct Cash Reimbursement on Pickup). Ref: ZW-TXN-MV725TZI-8126",
+          "actor": "Payment Service"
+        },
+        {
+          "event": "Completed",
+          "timestamp": "2026-10-13T19:12:37.139Z",
+          "details": "Donation transaction fully completed. Receipt ID: ZW-2026-91_949",
+          "actor": "Rahul Sharma"
+        }
+      ],
+      "foodId": "",
+      "foodName": "Organic Mangoes",
+      "_id": "don_1791918757091_949",
+      "createdAt": "2026-10-13T19:12:37.091Z",
+      "requestedBy": "ngo@helpinghands.org",
+      "ngoName": "Helping Hands NGO",
+      "ngoEmail": "ngo@helpinghands.org",
+      "ngoContact": "+91 91234 56789",
+      "requestedAt": "2026-10-13T19:12:37.102Z",
+      "acceptedAt": "2026-10-13T19:12:37.115Z",
+      "pickupDate": "2026-10-15",
+      "pickupTime": "4:30 PM",
+      "collectedAt": "2026-10-13T19:12:37.130Z",
+      "paymentRecordedAt": "2026-10-13T19:12:37.134Z",
+      "completedAt": "2026-10-13T19:12:37.139Z",
+      "receiptId": "ZW-2026-91_949"
+    },
+    {
+      "userEmail": "rahul@gmail.com",
+      "donorName": "Rahul Sharma",
+      "donorEmail": "rahul@gmail.com",
+      "donorContact": "+91 98765 43210",
+      "quantity": 5,
+      "unit": "kg",
+      "category": "Household Surplus",
+      "location": "Gandhipuram",
+      "pickupLocation": "Gandhipuram",
+      "description": "",
+      "photo": "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=500&auto=format&fit=crop&q=60",
+      "date": "14/10/2026",
+      "donationType": "free",
+      "expectedAmount": 0,
+      "agreedAmount": 0,
+      "paymentStatus": "not_applicable",
+      "donationStatus": "available",
+      "status": "Available",
+      "timeline": [
+        {
+          "event": "Food Donation Created",
+          "timestamp": "2026-10-13T19:09:53.612Z",
+          "details": "Free community donation listed for immediate redistribution (₹0)",
+          "actor": "Rahul Sharma"
+        },
+        {
+          "event": "NGO Requested",
+          "timestamp": "2026-10-13T19:09:53.616Z",
+          "details": "Helping Hands NGO requested to collect this donation.",
+          "actor": "Helping Hands NGO"
+        },
+        {
+          "event": "NGO Request Cancelled",
+          "timestamp": "2026-10-13T19:09:53.619Z",
+          "details": "Helping Hands NGO cancelled their collection request: Vehicle broke down. Listing is available again.",
+          "actor": "Helping Hands NGO"
+        }
+      ],
+      "foodId": "",
+      "foodName": "Surplus Apples",
+      "_id": "don_1791918593612_272",
+      "createdAt": "2026-10-13T19:09:53.612Z",
+      "requestedBy": "",
+      "ngoName": "",
+      "ngoEmail": "",
+      "ngoContact": "",
+      "requestedAt": "2026-10-13T19:09:53.616Z"
+    },
+    {
+      "userEmail": "rahul@gmail.com",
+      "donorName": "Rahul Sharma",
+      "donorEmail": "rahul@gmail.com",
+      "donorContact": "+91 98765 43210",
+      "quantity": 15,
+      "unit": "kg",
+      "category": "Fruits",
+      "location": "RS Puram, Coimbatore",
+      "pickupLocation": "RS Puram, Coimbatore",
+      "description": "",
+      "photo": "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=500&auto=format&fit=crop&q=60",
+      "date": "14/10/2026",
+      "donationType": "value_based",
+      "expectedAmount": 450,
+      "agreedAmount": 400,
+      "paymentStatus": "paid",
+      "donationStatus": "completed",
+      "status": "Completed",
+      "timeline": [
+        {
+          "event": "Food Donation Created",
+          "timestamp": "2026-10-13T19:09:53.565Z",
+          "details": "Value-Based donation listed with expected value of ₹450",
+          "actor": "Rahul Sharma"
+        },
+        {
+          "event": "NGO Requested",
+          "timestamp": "2026-10-13T19:09:53.574Z",
+          "details": "Helping Hands NGO requested to collect this donation. Note: We will collect with our distribution van.",
+          "actor": "Helping Hands NGO"
+        },
+        {
+          "event": "Donor Accepted",
+          "timestamp": "2026-10-13T19:09:53.583Z",
+          "details": "Donor confirmed request. Agreed value: ₹400 (Expected: ₹450)",
+          "actor": "Rahul Sharma"
+        },
+        {
+          "event": "Pickup Scheduled",
+          "timestamp": "2026-10-13T19:09:53.590Z",
+          "details": "Pickup scheduled for 2026-10-15 at 4:30 PM. Location: RS Puram, Coimbatore",
+          "actor": "Helping Hands NGO"
+        },
+        {
+          "event": "Food Collected",
+          "timestamp": "2026-10-13T19:09:53.596Z",
+          "details": "Items successfully collected in person by Helping Hands NGO.",
+          "actor": "Helping Hands NGO"
+        },
+        {
+          "event": "Payment Recorded",
+          "timestamp": "2026-10-13T19:09:53.600Z",
+          "details": "Payment of ₹400 recorded (Direct Cash Reimbursement on Pickup). Ref: ZW-TXN-MV722BSW-5041",
+          "actor": "Payment Service"
+        },
+        {
+          "event": "Completed",
+          "timestamp": "2026-10-13T19:09:53.605Z",
+          "details": "Donation transaction fully completed. Receipt ID: ZW-2026-66_997",
+          "actor": "Rahul Sharma"
+        }
+      ],
+      "foodId": "",
+      "foodName": "Organic Mangoes",
+      "_id": "don_1791918593566_997",
+      "createdAt": "2026-10-13T19:09:53.566Z",
+      "requestedBy": "ngo@helpinghands.org",
+      "ngoName": "Helping Hands NGO",
+      "ngoEmail": "ngo@helpinghands.org",
+      "ngoContact": "+91 91234 56789",
+      "requestedAt": "2026-10-13T19:09:53.574Z",
+      "acceptedAt": "2026-10-13T19:09:53.583Z",
+      "pickupDate": "2026-10-15",
+      "pickupTime": "4:30 PM",
+      "collectedAt": "2026-10-13T19:09:53.596Z",
+      "paymentRecordedAt": "2026-10-13T19:09:53.600Z",
+      "completedAt": "2026-10-13T19:09:53.605Z",
+      "receiptId": "ZW-2026-66_997"
+    },
+    {
+      "userEmail": "rahul@gmail.com",
+      "donorName": "Rahul Sharma",
+      "donorEmail": "rahul@gmail.com",
+      "donorContact": "+91 98765 43210",
+      "quantity": 5,
+      "unit": "kg",
+      "category": "Household Surplus",
+      "location": "Gandhipuram",
+      "pickupLocation": "Gandhipuram",
+      "description": "",
+      "photo": "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=500&auto=format&fit=crop&q=60",
+      "date": "13/10/2026",
+      "donationType": "free",
+      "expectedAmount": 0,
+      "agreedAmount": 0,
+      "paymentStatus": "not_applicable",
+      "donationStatus": "available",
+      "status": "Available",
+      "timeline": [
+        {
+          "event": "Food Donation Created",
+          "timestamp": "2026-10-13T17:50:19.424Z",
+          "details": "Free community donation listed for immediate redistribution (₹0)",
+          "actor": "Rahul Sharma"
+        },
+        {
+          "event": "NGO Requested",
+          "timestamp": "2026-10-13T17:50:19.425Z",
+          "details": "Helping Hands NGO requested to collect this donation.",
+          "actor": "Helping Hands NGO"
+        },
+        {
+          "event": "NGO Request Cancelled",
+          "timestamp": "2026-10-13T17:50:19.427Z",
+          "details": "Helping Hands NGO cancelled their collection request: Vehicle broke down. Listing is available again.",
+          "actor": "Helping Hands NGO"
+        }
+      ],
+      "foodId": "",
+      "foodName": "Surplus Apples",
+      "_id": "don_1791913819424_319",
+      "createdAt": "2026-10-13T17:50:19.424Z",
+      "requestedBy": "",
+      "ngoName": "",
+      "ngoEmail": "",
+      "ngoContact": "",
+      "requestedAt": "2026-10-13T17:50:19.425Z"
+    },
+    {
+      "userEmail": "rahul@gmail.com",
+      "donorName": "Rahul Sharma",
+      "donorEmail": "rahul@gmail.com",
+      "donorContact": "+91 98765 43210",
+      "quantity": 15,
+      "unit": "kg",
+      "category": "Fruits",
+      "location": "RS Puram, Coimbatore",
+      "pickupLocation": "RS Puram, Coimbatore",
+      "description": "",
+      "photo": "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=500&auto=format&fit=crop&q=60",
+      "date": "13/10/2026",
+      "donationType": "value_based",
+      "expectedAmount": 450,
+      "agreedAmount": 400,
+      "paymentStatus": "paid",
+      "donationStatus": "completed",
+      "status": "Completed",
+      "timeline": [
+        {
+          "event": "Food Donation Created",
+          "timestamp": "2026-10-13T17:50:19.385Z",
+          "details": "Value-Based donation listed with expected value of ₹450",
+          "actor": "Rahul Sharma"
+        },
+        {
+          "event": "NGO Requested",
+          "timestamp": "2026-10-13T17:50:19.394Z",
+          "details": "Helping Hands NGO requested to collect this donation. Note: We will collect with our distribution van.",
+          "actor": "Helping Hands NGO"
+        },
+        {
+          "event": "Donor Accepted",
+          "timestamp": "2026-10-13T17:50:19.402Z",
+          "details": "Donor confirmed request. Agreed value: ₹400 (Expected: ₹450)",
+          "actor": "Rahul Sharma"
+        },
+        {
+          "event": "Pickup Scheduled",
+          "timestamp": "2026-10-13T17:50:19.408Z",
+          "details": "Pickup scheduled for 2026-10-15 at 4:30 PM. Location: RS Puram, Coimbatore",
+          "actor": "Helping Hands NGO"
+        },
+        {
+          "event": "Food Collected",
+          "timestamp": "2026-10-13T17:50:19.412Z",
+          "details": "Items successfully collected in person by Helping Hands NGO.",
+          "actor": "Helping Hands NGO"
+        },
+        {
+          "event": "Payment Recorded",
+          "timestamp": "2026-10-13T17:50:19.414Z",
+          "details": "Payment of ₹400 recorded (Direct Cash Reimbursement on Pickup). Ref: ZW-TXN-MV6Z800M-2758",
+          "actor": "Payment Service"
+        },
+        {
+          "event": "Completed",
+          "timestamp": "2026-10-13T17:50:19.420Z",
+          "details": "Donation transaction fully completed. Receipt ID: ZW-2026-85_676",
+          "actor": "Rahul Sharma"
+        }
+      ],
+      "foodId": "",
+      "foodName": "Organic Mangoes",
+      "_id": "don_1791913819385_676",
+      "createdAt": "2026-10-13T17:50:19.385Z",
+      "requestedBy": "ngo@helpinghands.org",
+      "ngoName": "Helping Hands NGO",
+      "ngoEmail": "ngo@helpinghands.org",
+      "ngoContact": "+91 91234 56789",
+      "requestedAt": "2026-10-13T17:50:19.394Z",
+      "acceptedAt": "2026-10-13T17:50:19.402Z",
+      "pickupDate": "2026-10-15",
+      "pickupTime": "4:30 PM",
+      "collectedAt": "2026-10-13T17:50:19.412Z",
+      "paymentRecordedAt": "2026-10-13T17:50:19.414Z",
+      "completedAt": "2026-10-13T17:50:19.420Z",
+      "receiptId": "ZW-2026-85_676"
+    },
+    {
+      "userEmail": "rahul@gmail.com",
+      "donorName": "Rahul Sharma",
+      "donorEmail": "rahul@gmail.com",
+      "donorContact": "+91 98765 43210",
+      "quantity": 5,
+      "unit": "kg",
+      "category": "Household Surplus",
+      "location": "Gandhipuram",
+      "pickupLocation": "Gandhipuram",
+      "description": "",
+      "photo": "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=500&auto=format&fit=crop&q=60",
+      "date": "13/10/2026",
+      "donationType": "free",
+      "expectedAmount": 0,
+      "agreedAmount": 0,
+      "paymentStatus": "not_applicable",
+      "donationStatus": "available",
+      "status": "Available",
+      "timeline": [
+        {
+          "event": "Food Donation Created",
+          "timestamp": "2026-10-13T17:00:59.187Z",
+          "details": "Free community donation listed for immediate redistribution (₹0)",
+          "actor": "Rahul Sharma"
+        },
+        {
+          "event": "NGO Requested",
+          "timestamp": "2026-10-13T17:00:59.191Z",
+          "details": "Helping Hands NGO requested to collect this donation.",
+          "actor": "Helping Hands NGO"
+        },
+        {
+          "event": "NGO Request Cancelled",
+          "timestamp": "2026-10-13T17:00:59.194Z",
+          "details": "Helping Hands NGO cancelled their collection request: Vehicle broke down. Listing is available again.",
+          "actor": "Helping Hands NGO"
+        }
+      ],
+      "foodId": "",
+      "foodName": "Surplus Apples",
+      "_id": "don_1791910859187_634",
+      "createdAt": "2026-10-13T17:00:59.187Z",
+      "requestedBy": "",
+      "ngoName": "",
+      "ngoEmail": "",
+      "ngoContact": "",
+      "requestedAt": "2026-10-13T17:00:59.191Z"
+    },
+    {
+      "userEmail": "rahul@gmail.com",
+      "donorName": "Rahul Sharma",
+      "donorEmail": "rahul@gmail.com",
+      "donorContact": "+91 98765 43210",
+      "quantity": 15,
+      "unit": "kg",
+      "category": "Fruits",
+      "location": "RS Puram, Coimbatore",
+      "pickupLocation": "RS Puram, Coimbatore",
+      "description": "",
+      "photo": "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=500&auto=format&fit=crop&q=60",
+      "date": "13/10/2026",
+      "donationType": "value_based",
+      "expectedAmount": 450,
+      "agreedAmount": 400,
+      "paymentStatus": "paid",
+      "donationStatus": "completed",
+      "status": "Completed",
+      "timeline": [
+        {
+          "event": "Food Donation Created",
+          "timestamp": "2026-10-13T17:00:59.147Z",
+          "details": "Value-Based donation listed with expected value of ₹450",
+          "actor": "Rahul Sharma"
+        },
+        {
+          "event": "NGO Requested",
+          "timestamp": "2026-10-13T17:00:59.155Z",
+          "details": "Helping Hands NGO requested to collect this donation. Note: We will collect with our distribution van.",
+          "actor": "Helping Hands NGO"
+        },
+        {
+          "event": "Donor Accepted",
+          "timestamp": "2026-10-13T17:00:59.161Z",
+          "details": "Donor confirmed request. Agreed value: ₹400 (Expected: ₹450)",
+          "actor": "Rahul Sharma"
+        },
+        {
+          "event": "Pickup Scheduled",
+          "timestamp": "2026-10-13T17:00:59.168Z",
+          "details": "Pickup scheduled for 2026-10-15 at 4:30 PM. Location: RS Puram, Coimbatore",
+          "actor": "Helping Hands NGO"
+        },
+        {
+          "event": "Food Collected",
+          "timestamp": "2026-10-13T17:00:59.174Z",
+          "details": "Items successfully collected in person by Helping Hands NGO.",
+          "actor": "Helping Hands NGO"
+        },
+        {
+          "event": "Payment Recorded",
+          "timestamp": "2026-10-13T17:00:59.177Z",
+          "details": "Payment of ₹400 recorded (Direct Cash Reimbursement on Pickup). Ref: ZW-TXN-MV6XGJVT-8458",
+          "actor": "Payment Service"
+        },
+        {
+          "event": "Completed",
+          "timestamp": "2026-10-13T17:00:59.181Z",
+          "details": "Donation transaction fully completed. Receipt ID: ZW-2026-47_788",
+          "actor": "Rahul Sharma"
+        }
+      ],
+      "foodId": "",
+      "foodName": "Organic Mangoes",
+      "_id": "don_1791910859147_788",
+      "createdAt": "2026-10-13T17:00:59.147Z",
+      "requestedBy": "ngo@helpinghands.org",
+      "ngoName": "Helping Hands NGO",
+      "ngoEmail": "ngo@helpinghands.org",
+      "ngoContact": "+91 91234 56789",
+      "requestedAt": "2026-10-13T17:00:59.155Z",
+      "acceptedAt": "2026-10-13T17:00:59.161Z",
+      "pickupDate": "2026-10-15",
+      "pickupTime": "4:30 PM",
+      "collectedAt": "2026-10-13T17:00:59.174Z",
+      "paymentRecordedAt": "2026-10-13T17:00:59.177Z",
+      "completedAt": "2026-10-13T17:00:59.181Z",
+      "receiptId": "ZW-2026-47_788"
+    },
+    {
+      "_id": "don_tomato_101",
+      "foodId": "food_tomato_01",
+      "userEmail": "rahul@gmail.com",
+      "donorName": "Rahul Sharma",
+      "donorEmail": "rahul@gmail.com",
+      "donorContact": "+91 98765 43210",
+      "foodName": "Fresh Tomatoes",
+      "quantity": 10,
+      "unit": "kg",
+      "category": "Vegetables",
+      "location": "RS Puram, Coimbatore",
+      "pickupLocation": "RS Puram, Coimbatore",
+      "description": "Farm-fresh ripe tomatoes, suitable for community kitchen.",
+      "photo": "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=500&auto=format&fit=crop&q=60",
+      "donationType": "value_based",
+      "expectedAmount": 300,
+      "agreedAmount": 0,
+      "paymentStatus": "not_applicable",
+      "donationStatus": "available",
+      "status": "Available",
+      "date": "5/10/2026",
+      "createdAt": "2026-10-05T09:27:53.844Z",
+      "timeline": [
+        {
+          "event": "Donation Created",
+          "timestamp": "2026-10-05T09:27:53.844Z",
+          "details": "Value-based donation created with expected value of ₹300",
+          "actor": "Rahul Sharma"
+        }
+      ]
+    },
+    {
+      "_id": "don_biryani_102",
+      "foodId": "food_biryani_02",
+      "userEmail": "rahul@gmail.com",
+      "donorName": "Rahul Sharma",
+      "donorEmail": "rahul@gmail.com",
+      "donorContact": "+91 98765 43210",
+      "foodName": "Vegetable Biryani",
+      "quantity": 5,
+      "unit": "packets",
+      "category": "Cooked Meals",
+      "location": "Gandhipuram, Coimbatore",
+      "pickupLocation": "Gandhipuram, Coimbatore",
+      "description": "Freshly prepared vegetable biryani packets, clean and ready for consumption.",
+      "photo": "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=500&auto=format&fit=crop&q=60",
+      "donationType": "free",
+      "expectedAmount": 0,
+      "agreedAmount": 0,
+      "paymentStatus": "not_applicable",
+      "donationStatus": "available",
+      "status": "Available",
+      "date": "5/10/2026",
+      "createdAt": "2026-10-05T09:27:53.844Z",
+      "timeline": [
+        {
+          "event": "Donation Created",
+          "timestamp": "2026-10-05T09:27:53.844Z",
+          "details": "Free donation created for immediate redistribution",
+          "actor": "Rahul Sharma"
+        }
+      ]
+    }
+  ],
+  "cropDonations": [
+    {
+      "_id": "cdon_wheat_201",
+      "cropId": "crop_wheat_01",
+      "userEmail": "suresh@farmer.com",
+      "donorName": "Suresh Patel",
+      "donorEmail": "suresh@farmer.com",
+      "donorContact": "+91 98123 45678",
+      "cropName": "Organic Wheat",
+      "quantity": 50,
+      "unit": "kg",
+      "category": "Grains",
+      "location": "Pollachi, Coimbatore",
+      "pickupLocation": "Pollachi, Coimbatore",
+      "description": "Surplus organic wheat from harvest. Available for immediate pickup.",
+      "photo": "https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=500&auto=format&fit=crop&q=60",
+      "donationType": "value_based",
+      "expectedAmount": 1200,
+      "agreedAmount": 0,
+      "paymentStatus": "not_applicable",
+      "donationStatus": "available",
+      "status": "Available",
+      "date": "5/10/2026",
+      "createdAt": "2026-10-05T09:27:53.844Z",
+      "timeline": [
+        {
+          "event": "Crop Donation Created",
+          "timestamp": "2026-10-05T09:27:53.844Z",
+          "details": "Farmer crop donation created with expected value of ₹1,200",
+          "actor": "Suresh Patel"
+        }
+      ]
+    }
+  ]
+}

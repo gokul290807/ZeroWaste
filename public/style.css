@@ -1207,6 +1207,66 @@ footer p {
 }
 
 
+/* Dashboard Expiry Notification Banner & Card */
+.expiry-notification-card {
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    border: 1px solid #fde68a;
+    border-left: 6px solid #f59e0b;
+    border-radius: 12px;
+    padding: 18px 22px;
+    box-shadow: 0 4px 14px rgba(245, 158, 11, 0.12);
+    animation: fadeInSlide 0.3s ease-in-out;
+}
+
+.expiry-notification-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+}
+
+.expiry-notification-title {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.expiry-notification-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.expiry-notification-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    background: #ffffff;
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 1px solid #fde68a;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.expiry-notification-item:hover {
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+}
+
+@keyframes fadeInSlide {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 /* Expiry Alert */
 
 .expiry-alert-container {
@@ -1391,4 +1451,814 @@ footer p {
     max-width: 800px;
     margin: 25px auto;
 }
+
+
+
+/* ========================================================
+   DONATION TYPE SELECTION (Free vs Value-Based)
+======================================================== */
+
+.donation-type-selector {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.type-card {
+    border: 2px solid #d5e5db;
+    border-radius: 12px;
+    padding: 16px;
+    cursor: pointer;
+    background: #f9fcfb;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.type-card:hover {
+    border-color: #2e8b57;
+    background: #f0f8f4;
+}
+
+.type-card.selected {
+    border-color: #2e8b57;
+    background: #e8f5ee;
+    box-shadow: 0 4px 12px rgba(46, 139, 87, 0.15);
+}
+
+.type-icon {
+    font-size: 28px;
+    line-height: 1;
+}
+
+.type-info h4 {
+    font-size: 16px;
+    color: #173b2a;
+    margin-bottom: 4px;
+}
+
+.type-info p {
+    font-size: 13px;
+    color: #557563;
+    line-height: 1.4;
+}
+
+.value-input-wrapper {
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.currency-addon {
+    position: absolute;
+    left: 14px;
+    font-size: 18px;
+    font-weight: bold;
+    color: #2e8b57;
+}
+
+.value-input-wrapper input {
+    padding-left: 36px !important;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+/* ========================================================
+   STATUS BADGES (Modern delivery/order style)
+======================================================== */
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.badge-available {
+    background: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #a5d6a7;
+}
+
+.badge-requested {
+    background: #fff8e1;
+    color: #f57f17;
+    border: 1px solid #ffe082;
+}
+
+.badge-accepted {
+    background: #e3f2fd;
+    color: #1565c0;
+    border: 1px solid #90caf9;
+}
+
+.badge-collection_scheduled,
+.badge-collection-scheduled {
+    background: #f3e5f5;
+    color: #6a1b9a;
+    border: 1px solid #ce93d8;
+}
+
+.badge-collected {
+    background: #fff3e0;
+    color: #e65100;
+    border: 1px solid #ffcc80;
+}
+
+.badge-completed {
+    background: #e8f8f0;
+    color: #1b5e20;
+    border: 1px solid #81c784;
+}
+
+.badge-cancelled {
+    background: #eceff1;
+    color: #546e7a;
+    border: 1px solid #b0bec5;
+}
+
+/* Payment Status Badges */
+.payment-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.payment-free {
+    background: #e0f2f1;
+    color: #00695c;
+    border: 1px solid #b2dfdb;
+}
+
+.payment-pending {
+    background: #fff9c4;
+    color: #f57f17;
+    border: 1px solid #fff59d;
+}
+
+.payment-paid {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+/* ========================================================
+   FILTER TABS
+======================================================== */
+
+.status-filter-tabs {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 10px 0 18px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #e1ece5;
+}
+
+.filter-tab {
+    background: white;
+    border: 1px solid #d0dfd6;
+    color: #446552;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+.filter-tab:hover {
+    background: #f1f8f3;
+    border-color: #2e8b57;
+}
+
+.filter-tab.active {
+    background: #2e8b57;
+    color: white;
+    border-color: #2e8b57;
+    box-shadow: 0 3px 8px rgba(46, 139, 87, 0.25);
+}
+
+/* ========================================================
+   MODERN DONATION CARDS (Donor & NGO Views)
+======================================================== */
+
+.donation-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 22px;
+    margin-top: 15px;
+}
+
+.donation-order-card {
+    background: white;
+    border-radius: 16px;
+    border: 1px solid #e2ece6;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.donation-order-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.09);
+}
+
+.card-top-banner {
+    position: relative;
+    height: 140px;
+    background: #eef5f0;
+    overflow: hidden;
+}
+
+.card-top-banner img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.card-badge-overlay {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 2;
+}
+
+.card-type-tag {
+    position: absolute;
+    bottom: 10px;
+    left: 12px;
+    background: rgba(23, 59, 42, 0.85);
+    backdrop-filter: blur(4px);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.donation-order-body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.donation-order-title {
+    font-size: 19px;
+    font-weight: 700;
+    color: #173b2a;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.donation-order-qty {
+    font-size: 15px;
+    color: #2e8b57;
+    font-weight: 600;
+}
+
+.donation-value-box {
+    background: #f4faf6;
+    border-radius: 10px;
+    padding: 12px;
+    margin: 12px 0;
+    border: 1px dashed #b7d6c3;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.donation-value-main {
+    font-size: 18px;
+    font-weight: 800;
+    color: #173b2a;
+}
+
+.donation-value-sub {
+    font-size: 12px;
+    color: #607b6c;
+}
+
+.info-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #425b4d;
+    margin-bottom: 8px;
+}
+
+.info-row strong {
+    color: #173b2a;
+}
+
+.info-row a {
+    color: #2e8b57;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.info-row a:hover {
+    text-decoration: underline;
+}
+
+.ngo-partner-box {
+    background: #eff6ff;
+    border-left: 4px solid #3b82f6;
+    padding: 12px;
+    border-radius: 8px;
+    margin: 12px 0;
+    font-size: 13px;
+    color: #1e3a8a;
+}
+
+.pickup-schedule-box {
+    background: #faf5ff;
+    border-left: 4px solid #a855f7;
+    padding: 12px;
+    border-radius: 8px;
+    margin: 12px 0;
+    font-size: 13px;
+    color: #581c87;
+}
+
+.card-action-bar {
+    margin-top: auto;
+    padding-top: 15px;
+    border-top: 1px solid #edf4f0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.btn-sm {
+    padding: 9px 14px;
+    font-size: 13px;
+    border-radius: 8px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    text-decoration: none;
+    cursor: pointer;
+    flex: 1 1 auto;
+    text-align: center;
+    border: none;
+    transition: all 0.2s ease;
+}
+
+.btn-primary {
+    background: #2e8b57;
+    color: white;
+}
+.btn-primary:hover {
+    background: #246d45;
+}
+
+.btn-blue {
+    background: #1976d2;
+    color: white;
+}
+.btn-blue:hover {
+    background: #115293;
+}
+
+.btn-amber {
+    background: #f59e0b;
+    color: white;
+}
+.btn-amber:hover {
+    background: #d97706;
+}
+
+.btn-outline {
+    background: white;
+    color: #2e8b57;
+    border: 1px solid #2e8b57;
+}
+.btn-outline:hover {
+    background: #f0f8f4;
+}
+
+.btn-danger-outline {
+    background: white;
+    color: #d32f2f;
+    border: 1px solid #d32f2f;
+}
+.btn-danger-outline:hover {
+    background: #ffebee;
+}
+
+.btn-directions {
+    background: #0f9d58;
+    color: white;
+    font-weight: 600;
+}
+.btn-directions:hover {
+    background: #0b8043;
+}
+
+/* ========================================================
+   TIMELINE STEPPER (Delivery Progress)
+======================================================== */
+
+.donation-stepper {
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+    margin: 16px 0 20px;
+    padding: 0 10px;
+}
+
+.donation-stepper::before {
+    content: '';
+    position: absolute;
+    top: 15px;
+    left: 20px;
+    right: 20px;
+    height: 3px;
+    background: #e2ece6;
+    z-index: 1;
+}
+
+.step-node {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: #718d7f;
+}
+
+.step-circle {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: white;
+    border: 3px solid #cfded6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    margin-bottom: 5px;
+    transition: all 0.2s ease;
+}
+
+.step-node.completed .step-circle {
+    background: #2e8b57;
+    border-color: #2e8b57;
+    color: white;
+}
+
+.step-node.active .step-circle {
+    background: #ffd54f;
+    border-color: #f59e0b;
+    color: #332700;
+    transform: scale(1.15);
+    box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.2);
+}
+
+.step-node.completed span,
+.step-node.active span {
+    color: #173b2a;
+    font-weight: 700;
+}
+
+/* Audit Timeline list */
+.audit-timeline {
+    list-style: none;
+    position: relative;
+    padding-left: 24px;
+    margin-top: 15px;
+}
+
+.audit-timeline::before {
+    content: '';
+    position: absolute;
+    top: 5px;
+    bottom: 5px;
+    left: 8px;
+    width: 2px;
+    background: #b5d5c3;
+}
+
+.audit-timeline-item {
+    position: relative;
+    margin-bottom: 16px;
+}
+
+.audit-timeline-item::before {
+    content: '✓';
+    position: absolute;
+    left: -24px;
+    top: 0;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #2e8b57;
+    color: white;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.audit-timeline-title {
+    font-weight: 700;
+    font-size: 14px;
+    color: #173b2a;
+}
+
+.audit-timeline-meta {
+    font-size: 12px;
+    color: #607b6c;
+}
+
+.audit-timeline-details {
+    font-size: 13px;
+    color: #334d3f;
+    margin-top: 2px;
+}
+
+/* ========================================================
+   MODALS & DIALOGS
+======================================================== */
+
+.custom-modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 35, 25, 0.65);
+    backdrop-filter: blur(5px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+    animation: fadeIn 0.2s ease;
+}
+
+.custom-modal-card {
+    background: white;
+    border-radius: 18px;
+    max-width: 550px;
+    width: 100%;
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    animation: slideUp 0.25s ease;
+}
+
+.custom-modal-header {
+    background: #f4faf6;
+    padding: 20px 24px;
+    border-bottom: 1px solid #e1ece5;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.custom-modal-header h3 {
+    font-size: 20px;
+    color: #173b2a;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+}
+
+.custom-modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #728c7f;
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.custom-modal-close:hover {
+    background: #e2ece6;
+    color: #173b2a;
+}
+
+.custom-modal-body {
+    padding: 24px;
+    max-height: 75vh;
+    overflow-y: auto;
+}
+
+.custom-modal-footer {
+    padding: 16px 24px;
+    background: #f9fcfb;
+    border-top: 1px solid #e1ece5;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.dialog-summary-card {
+    background: #f7faf8;
+    border: 1px solid #d5e5dc;
+    border-radius: 12px;
+    padding: 16px;
+    margin: 15px 0;
+}
+
+.dialog-summary-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px solid #ebf2ee;
+    font-size: 14px;
+}
+
+.dialog-summary-row:last-child {
+    border-bottom: none;
+}
+
+/* ========================================================
+   OFFICIAL DONATION RECEIPT
+======================================================== */
+
+.receipt-container {
+    background: white;
+    border: 2px dashed #b7d6c3;
+    border-radius: 14px;
+    padding: 28px;
+    color: #173b2a;
+    font-family: inherit;
+    position: relative;
+}
+
+.receipt-watermark {
+    position: absolute;
+    right: 25px;
+    bottom: 25px;
+    border: 3px solid #2e8b57;
+    color: #2e8b57;
+    text-transform: uppercase;
+    font-weight: 900;
+    font-size: 14px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    transform: rotate(-10deg);
+    opacity: 0.65;
+    pointer-events: none;
+}
+
+.receipt-header {
+    text-align: center;
+    border-bottom: 2px solid #173b2a;
+    padding-bottom: 16px;
+    margin-bottom: 20px;
+}
+
+.receipt-header h2 {
+    font-size: 24px;
+    letter-spacing: 1px;
+    color: #173b2a;
+    margin-bottom: 4px;
+}
+
+.receipt-id-tag {
+    font-family: monospace;
+    font-size: 14px;
+    background: #eef7f2;
+    padding: 4px 10px;
+    border-radius: 4px;
+    display: inline-block;
+    margin-top: 6px;
+    font-weight: 700;
+    color: #2e8b57;
+}
+
+.receipt-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.receipt-party {
+    background: #f6faf7;
+    padding: 14px;
+    border-radius: 8px;
+}
+
+.receipt-party h4 {
+    font-size: 13px;
+    text-transform: uppercase;
+    color: #2e8b57;
+    margin-bottom: 8px;
+    letter-spacing: 0.5px;
+}
+
+.receipt-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+}
+
+.receipt-table th {
+    background: #eaf3ed;
+    text-align: left;
+    padding: 10px;
+    font-size: 13px;
+    color: #173b2a;
+}
+
+.receipt-table td {
+    padding: 10px;
+    border-bottom: 1px solid #e1ece5;
+    font-size: 14px;
+}
+
+.receipt-total-row {
+    font-size: 16px;
+    font-weight: 800;
+    background: #f4faf6;
+}
+
+.receipt-footer {
+    text-align: center;
+    font-size: 12px;
+    color: #6a8576;
+    margin-top: 24px;
+    padding-top: 14px;
+    border-top: 1px dashed #cfded5;
+}
+
+/* Print Styles */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    .custom-modal-backdrop,
+    .custom-modal-backdrop * {
+        visibility: visible;
+    }
+    .custom-modal-backdrop {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        background: white !important;
+        padding: 0 !important;
+    }
+    .custom-modal-card {
+        box-shadow: none !important;
+        max-width: 100% !important;
+        width: 100% !important;
+    }
+    /* Only hide interactive modal header and action buttons during paper print */
+    .custom-modal-header {
+        display: none !important;
+    }
+    .custom-modal-footer {
+        display: none !important;
+    }
+    .receipt-container {
+        border: 2px solid #000 !important;
+    }
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
 

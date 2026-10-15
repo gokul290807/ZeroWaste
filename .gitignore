@@ -1,0 +1,19 @@
+# Environment & secrets
+.env
+.env.*
+!.env.example
+backend/.env
+backend/.env.*
+!backend/.env.example
+
+# Dependencies
+node_modules/
+backend/node_modules/
+
+# Logs & scratch
+*.log
+npm-debug.log*
+
+# OS Files
+.DS_Store
+Thumbs.db
