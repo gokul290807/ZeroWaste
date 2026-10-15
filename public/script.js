@@ -886,7 +886,17 @@ async function loadFoodInventory() {
             return;
         }
 
-        const foods = await res.json();
+        let foods = [];
+        if (res.ok) {
+            const data = await res.json();
+            foods = Array.isArray(data) ? data : [];
+        } else {
+            console.error(`Failed to load food inventory (HTTP ${res.status})`);
+            foods = [];
+        }
+
+        cachedFoods = foods;
+
         const tbody = document.getElementById("foodInventory");
         const emptyEl = document.getElementById("emptyInventory");
         const foodCountEl = document.getElementById("foodCount");
@@ -897,7 +907,7 @@ async function loadFoodInventory() {
         if (!tbody) return;
         tbody.innerHTML = "";
 
-        if (!foods || foods.length === 0) {
+        if (!Array.isArray(foods) || foods.length === 0) {
             if (emptyEl) emptyEl.style.display = "block";
             updateFoodDropdown([]);
             updateAISuggestions([], 0);
@@ -1461,15 +1471,18 @@ async function loadMyDonations() {
         }
 
         if (res.ok) {
-            cachedDonations = await res.json();
-            renderDonorDonations();
-
-            const activeDonationsCount = (cachedDonations || []).filter(d =>
-                !["completed", "cancelled"].includes((d.donationStatus || d.status || "").toLowerCase())
-            ).length;
-            const donationCountEl = document.getElementById("donationCount");
-            if (donationCountEl) donationCountEl.innerText = activeDonationsCount;
+            const data = await res.json();
+            cachedDonations = Array.isArray(data) ? data : [];
+        } else {
+            cachedDonations = [];
         }
+        renderDonorDonations();
+
+        const activeDonationsCount = (cachedDonations || []).filter(d =>
+            !["completed", "cancelled"].includes((d.donationStatus || d.status || "").toLowerCase())
+        ).length;
+        const donationCountEl = document.getElementById("donationCount");
+        if (donationCountEl) donationCountEl.innerText = activeDonationsCount;
     } catch (e) {
         console.error("Error loading donations:", e);
     }
@@ -2292,7 +2305,13 @@ async function loadFarmerCrops() {
             return;
         }
 
-        const crops = await res.json();
+        let crops = [];
+        if (res.ok) {
+            const data = await res.json();
+            crops = Array.isArray(data) ? data : [];
+        } else {
+            crops = [];
+        }
         const list = document.getElementById("farmerCropList");
         const select = document.getElementById("farmerCropSelect");
 

@@ -377,58 +377,13 @@ function createDynamicModelProxy(mongooseModel, localModel) {
             if (isUsingLocalDb || mongoose.connection.readyState !== 1) {
                 return localModel[prop];
             }
-            const orig = target[prop];
-            if (typeof orig === "function") {
-                return function (...args) {
-                    try {
-                        const result = orig.apply(target, args);
-                        if (result && typeof result.then === "function") {
-                            return result.catch(err => {
-                                if (
-                                    err.name === "MongooseServerSelectionError" ||
-                                    err.name === "MongoNetworkError" ||
-                                    (err.message && (err.message.includes("SSL") || err.message.includes("whitelist") || err.message.includes("timed out")))
-                                ) {
-                                    console.log(`⚠️ Atlas query failure (${err.message.slice(0, 50)}...). Falling back to local store.`);
-                                    isUsingLocalDb = true;
-                                    return localModel[prop](...args);
-                                }
-                                throw err;
-                            });
-                        }
-                        return result;
-                    } catch (syncErr) {
-                        isUsingLocalDb = true;
-                        return localModel[prop](...args);
-                    }
-                };
-            }
-            return orig;
+            return target[prop];
         },
         construct(target, args) {
             if (isUsingLocalDb || mongoose.connection.readyState !== 1) {
                 return new localModel(...args);
             }
-            const instance = new target(...args);
-            const origSave = instance.save;
-            instance.save = async function (...saveArgs) {
-                try {
-                    return await origSave.apply(this, saveArgs);
-                } catch (saveErr) {
-                    if (
-                        saveErr.name === "MongooseServerSelectionError" ||
-                        saveErr.name === "MongoNetworkError" ||
-                        (saveErr.message && (saveErr.message.includes("SSL") || saveErr.message.includes("whitelist") || saveErr.message.includes("timed out")))
-                    ) {
-                        console.log(`⚠️ Atlas save failure (${saveErr.message.slice(0, 50)}...). Falling back to local store.`);
-                        isUsingLocalDb = true;
-                        const localInst = new localModel(this.toObject ? this.toObject() : this);
-                        return await localInst.save();
-                    }
-                    throw saveErr;
-                }
-            };
-            return instance;
+            return new target(...args);
         }
     });
 }

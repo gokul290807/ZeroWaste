@@ -326,7 +326,7 @@ app.get("/api/foods/:email", authenticateToken, async function (req, res) {
         }
 
         const foods = await Food.find({ userEmail: requestedEmail }).sort({ createdAt: -1 });
-        res.status(200).json(foods);
+        res.status(200).json(Array.isArray(foods) ? foods : []);
     } catch (error) {
         console.error("Food loading error:", error.message);
         res.status(500).json({ message: "Server error while loading food inventory." });
@@ -1156,8 +1156,9 @@ app.get("/api/donations/user/:email", authenticateToken, async function (req, re
             return res.status(403).json({ message: "Unauthorized: You can only view your own donations." });
         }
         const donations = await Donation.find({ userEmail: email }).sort({ createdAt: -1 });
-        res.status(200).json(donations);
+        res.status(200).json(Array.isArray(donations) ? donations : []);
     } catch (error) {
+        console.error("Donations error:", error.message);
         res.status(500).json({ message: "Server error loading user donations." });
     }
 });
@@ -1170,8 +1171,9 @@ app.get("/api/donations/:email", authenticateToken, async function (req, res) {
             return res.status(403).json({ message: "Unauthorized: You can only view your own donations." });
         }
         const donations = await Donation.find({ userEmail: email }).sort({ createdAt: -1 });
-        res.status(200).json(donations);
+        res.status(200).json(Array.isArray(donations) ? donations : []);
     } catch (error) {
+        console.error("Donations error:", error.message);
         res.status(500).json({ message: "Server error loading donations." });
     }
 });
