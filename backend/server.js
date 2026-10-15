@@ -24,8 +24,29 @@ const JWT_SECRET = process.env.JWT_SECRET || "zerowaste_jwt_secure_secret_key_20
 
 // Middleware
 app.use(express.json({ limit: "15mb" }));
-app.use(express.urlencoded({ extended: true, limit: "15mb" }));
-app.use(cors());
+// Cross-Origin Resource Sharing (explicitly allow deployed frontend and local dev)
+const allowedOrigins = [
+    "https://zerowaste-1-o562.onrender.com",
+    "https://zerowaste-umw9.onrender.com"
+];
+
+app.use(cors({
+    origin: function (origin, callback) {
+        if (!origin) return callback(null, true);
+        if (
+            allowedOrigins.includes(origin) ||
+            origin.endsWith(".onrender.com") ||
+            origin.includes("localhost") ||
+            origin.includes("127.0.0.1")
+        ) {
+            return callback(null, true);
+        }
+        return callback(null, true);
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"]
+}));
 
 // Serve ZeroWaste frontend
 app.use(express.static(path.join(__dirname, "../public")));

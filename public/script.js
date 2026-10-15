@@ -3,14 +3,24 @@
  * Comprehensive Donation Value, Acceptance, Collection, Privacy & Payment Workflow
  */
 
-// Dynamic API Base URL: Automatically selects current origin (localhost:3000, 127.0.0.1, or production)
-const API_BASE = window.location.origin.includes("localhost") || window.location.origin.includes("127.0.0.1")
-    ? window.location.origin
-    : (window.location.protocol === "http:" || window.location.protocol === "https:")
-        ? window.location.origin
-        : "http://localhost:3000";
+// Render Deployed Backend API Endpoint
+const DEPLOYED_BACKEND_URL = "https://zerowaste-umw9.onrender.com";
 
-console.log(`🌱 ZeroWaste loaded. API Base: ${API_BASE}`);
+// Determine local vs production environment
+const isLocalhost = Boolean(
+    window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1" ||
+    window.location.hostname === "[::1]"
+);
+
+// Dynamic API Base URL: Uses local server during development, or deployed Render backend in production
+const API_BASE = isLocalhost
+    ? (window.location.port === "3000" ? window.location.origin : "http://localhost:3000")
+    : (window.location.protocol === "file:" || window.location.origin === "null")
+        ? "http://localhost:3000"
+        : DEPLOYED_BACKEND_URL;
+
+console.log(`🌱 ZeroWaste loaded. Host: ${window.location.origin} | API Base: ${API_BASE}`);
 
 // Current application state
 let currentDonorFilter = "all";
