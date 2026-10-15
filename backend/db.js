@@ -293,6 +293,9 @@ function createLocalModel(collectionKey) {
             }
             return this;
         }
+        lean() {
+            return this;
+        }
         then(resolve, reject) {
             return Promise.resolve(this.results).then(resolve, reject);
         }

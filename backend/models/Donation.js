@@ -17,6 +17,10 @@ const donationSchema = new mongoose.Schema({
         type: String,
         default: ""
     },
+    donorAddress: {
+        type: String,
+        default: ""
+    },
     foodId: {
         type: String,
         default: ""

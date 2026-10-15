@@ -310,7 +310,10 @@ function runServerApiTests() {
                     `Blocks donation of expired food from yesterday (${yesterdayStr}, returns 400)`
                 );
 
-                // Clean up test foods
+                // Clean up test foods and test donation
+                if (donateToday.body && donateToday.body.donation && donateToday.body.donation._id) {
+                    await request("PUT", `/api/donations/${donateToday.body.donation._id}/cancel`, { reason: "Test cleanup" }, token);
+                }
                 if (foodTodayId) await request("DELETE", `/api/foods/${foodTodayId}`, null, token);
                 if (foodTomorrowId) await request("DELETE", `/api/foods/${foodTomorrowId}`, null, token);
 

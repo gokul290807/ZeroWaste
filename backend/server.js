@@ -16,6 +16,7 @@ const {
 } = db;
 
 const paymentService = require("./services/paymentService");
+const aiRecipeService = require("./services/aiRecipeService");
 const { parseCalendarDate, calculateExpiryStatus } = require("./dateUtils");
 
 const app = express();
@@ -565,13 +566,41 @@ async function handleCreateDonation(Model, req, res, isCrop = false) {
                         });
                     }
                 }
+
+                // Check if this inventory food item already has an active donation listing
+                const existingActive = await Model.findOne({
+                    foodId: effectiveId,
+                    donationStatus: { $in: ["available", "requested", "accepted"] }
+                });
+                if (existingActive) {
+                    return res.status(400).json({
+                        message: "This food item is already actively listed for donation."
+                    });
+                }
+            }
+
+            // Deduplicate rapid consecutive submissions (within 15 seconds)
+            const recentDuplicate = await Model.findOne({
+                userEmail: req.user.email,
+                foodName: effectiveName,
+                quantity: numQty,
+                unit: unit.trim(),
+                donationStatus: "available",
+                createdAt: { $gte: new Date(Date.now() - 15000) }
+            });
+            if (recentDuplicate) {
+                return res.status(200).json({
+                    message: "Food donation already listed.",
+                    donation: recentDuplicate
+                });
             }
         }
 
         // Retrieve real registered donor details from database
         const donorUser = await User.findOne({ email: req.user.email });
-        const realDonorName = donorUser ? donorUser.name : "Registered Donor";
-        const realDonorContact = donorUser ? donorUser.contactNumber : "";
+        const realDonorName = (donorUser && donorUser.name) ? donorUser.name : (req.body.donorName || "Registered Donor");
+        const realDonorContact = (donorUser && donorUser.contactNumber) ? donorUser.contactNumber : (req.body.donorContact || "");
+        const realDonorAddress = (donorUser && donorUser.address) ? donorUser.address : (pickupLocation || location || "").trim();
 
         const isValueBased = donationType === "value_based";
         const numericExpectedAmount = isValueBased ? Math.max(0, Number(expectedAmount) || 0) : 0;
@@ -585,11 +614,12 @@ async function handleCreateDonation(Model, req, res, isCrop = false) {
             donorName: realDonorName,
             donorEmail: req.user.email,
             donorContact: realDonorContact,
+            donorAddress: realDonorAddress,
             quantity: numQty,
             unit: unit.trim(),
             category: category || (isCrop ? "Surplus Crop" : "Household Surplus"),
-            location: location.trim(),
-            pickupLocation: (pickupLocation || location).trim(),
+            location: (location || realDonorAddress || "Coimbatore").trim(),
+            pickupLocation: (pickupLocation || realDonorAddress || location || "Coimbatore").trim(),
             description: description ? description.trim() : "",
             photo: photo || defaultPhoto,
             date: new Date().toLocaleDateString(),
@@ -1115,7 +1145,7 @@ async function handleCancelDonation(Model, req, res) {
 // Create a new food donation
 app.post("/api/donations", authenticateToken, (req, res) => handleCreateDonation(Donation, req, res, false));
 
-// Get all food donations (with optional filters) - Contact numbers sanitized before acceptance
+// Get all food donations (with optional filters) - Enriched with donor account details & contact privacy
 app.get("/api/donations", optionalAuth, async function (req, res) {
     try {
         const { status } = req.query;
@@ -1128,9 +1158,54 @@ app.get("/api/donations", optionalAuth, async function (req, res) {
             ];
         }
 
+        // Filter out automated test runner records from public marketplace
+        if (status === "available" || !status) {
+            query.userEmail = { $not: /^expiry_tester_/i };
+        }
+
         const donations = await Donation.find(query).sort({ createdAt: -1 });
-        const sanitized = donations.map(d => sanitizeDonationForViewer(d, req.user));
-        res.status(200).json(sanitized);
+
+        // Retrieve associated donor user accounts to guarantee accurate donor names and addresses
+        const donorEmails = [...new Set(donations.map(d => (d.userEmail || d.donorEmail || "").toLowerCase().trim()).filter(Boolean))];
+        const donorUsers = await User.find({ email: { $in: donorEmails } });
+        const userMap = new Map((donorUsers || []).map(u => [((u && u.email) || "").toLowerCase(), u]));
+
+        // Enrich donations with real donor user details and deduplicate by foodId / unique listing
+        const seenIds = new Set();
+        const seenFoodInventoryIds = new Set();
+        const enriched = [];
+
+        for (const donation of donations) {
+            const doc = donation.toObject ? donation.toObject() : { ...donation };
+            const docIdStr = String(doc._id);
+
+            // Deduplicate exact donation document ID
+            if (seenIds.has(docIdStr)) continue;
+            seenIds.add(docIdStr);
+
+            // If an inventory item is listed multiple times as available, keep only the latest one
+            if (doc.foodId && !doc.foodId.startsWith("custom_") && (status === "available" || !status)) {
+                if (seenFoodInventoryIds.has(doc.foodId)) continue;
+                seenFoodInventoryIds.add(doc.foodId);
+            }
+
+            const donorUser = userMap.get((doc.userEmail || doc.donorEmail || "").toLowerCase().trim());
+            if (donorUser) {
+                doc.donorName = donorUser.name || doc.donorName || "Registered Donor";
+                if (donorUser.address) {
+                    doc.donorAddress = donorUser.address;
+                    doc.pickupLocation = doc.pickupLocation || donorUser.address;
+                    doc.location = doc.location || donorUser.address;
+                }
+            } else if (!doc.donorName) {
+                doc.donorName = "Registered Donor";
+            }
+
+            const sanitized = sanitizeDonationForViewer(doc, req.user);
+            enriched.push(sanitized);
+        }
+
+        res.status(200).json(enriched);
     } catch (error) {
         console.error("All donation loading error:", error.message);
         res.status(500).json({ message: "Server error while loading donations." });
@@ -1142,7 +1217,17 @@ app.get("/api/donations/item/:id", optionalAuth, async function (req, res) {
     try {
         const donation = await Donation.findById(req.params.id);
         if (!donation) return res.status(404).json({ message: "Donation not found." });
-        res.status(200).json(sanitizeDonationForViewer(donation, req.user));
+        const doc = donation.toObject ? donation.toObject() : { ...donation };
+        const donorUser = await User.findOne({ email: (doc.userEmail || doc.donorEmail || "").toLowerCase().trim() });
+        if (donorUser) {
+            doc.donorName = donorUser.name || doc.donorName || "Registered Donor";
+            if (donorUser.address) {
+                doc.donorAddress = donorUser.address;
+                doc.pickupLocation = doc.pickupLocation || donorUser.address;
+                doc.location = doc.location || donorUser.address;
+            }
+        }
+        res.status(200).json(sanitizeDonationForViewer(doc, req.user));
     } catch (error) {
         res.status(500).json({ message: "Server error loading donation." });
     }
@@ -1295,6 +1380,47 @@ app.put("/api/crop-donations/:id/collect", authenticateToken, (req, res) => hand
 app.put("/api/crop-donations/:id/payment", authenticateToken, (req, res) => handlePaymentDonation(CropDonation, req, res));
 app.put("/api/crop-donations/:id/complete", authenticateToken, (req, res) => handleCompleteDonation(CropDonation, req, res));
 app.put("/api/crop-donations/:id/cancel", authenticateToken, (req, res) => handleCancelDonation(CropDonation, req, res));
+
+/* ========================================================
+   AI RECIPE & NUTRITION SUGGESTION APIS
+======================================================== */
+
+// Generate healthy recipes from inventory (Protected / Optional Auth)
+app.post("/api/ai/recipes", optionalAuth, async function (req, res) {
+    try {
+        let foods = req.body.foods;
+        if (!Array.isArray(foods)) {
+            if (req.user && req.user.email) {
+                foods = await Food.find({ userEmail: req.user.email });
+            } else {
+                foods = [];
+            }
+        }
+
+        const recipes = aiRecipeService.generateRecipesForInventory(foods);
+        res.status(200).json({ recipes });
+    } catch (error) {
+        console.error("AI Recipe generation error:", error.message);
+        res.status(500).json({ message: "Server error generating recipe suggestions." });
+    }
+});
+
+// Get AI recipes for logged-in user inventory
+app.get("/api/ai/recipes/:email", authenticateToken, async function (req, res) {
+    try {
+        const email = req.params.email.toLowerCase().trim();
+        if (req.user.email !== email) {
+            return res.status(403).json({ message: "Unauthorized: You can only view recipes for your own inventory." });
+        }
+
+        const foods = await Food.find({ userEmail: email });
+        const recipes = aiRecipeService.generateRecipesForInventory(foods);
+        res.status(200).json({ recipes });
+    } catch (error) {
+        console.error("AI Recipe loading error:", error.message);
+        res.status(500).json({ message: "Server error generating recipe suggestions." });
+    }
+});
 
 /* ========================================================
    DASHBOARD ANALYTICS & STATS APIS

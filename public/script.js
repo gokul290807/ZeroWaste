@@ -770,6 +770,88 @@ async function initDashboard() {
    FOOD EXPIRY NOTIFICATIONS (Banner & Urgent Item Alerts)
 ======================================================== */
 
+/* ========================================================
+   FOOD EXPIRY NOTIFICATIONS (Banner & Urgent Item Alerts)
+======================================================== */
+
+// Request browser notification permission politely upon user interaction
+async function requestBrowserNotificationPermission() {
+    if (!("Notification" in window)) {
+        alert("Desktop browser notifications are not supported by this browser.");
+        return;
+    }
+    try {
+        const perm = await Notification.requestPermission();
+        if (perm === "granted") {
+            checkAndSendBrowserNotifications(cachedFoods, true);
+        }
+        renderExpiryNotifications(cachedFoods);
+    } catch (e) {
+        console.warn("Could not request notification permission:", e);
+    }
+}
+
+// Send browser notifications without duplicates
+function checkAndSendBrowserNotifications(foods, force = false) {
+    if (!("Notification" in window) || Notification.permission !== "granted") return;
+    if (!Array.isArray(foods) || foods.length === 0) return;
+
+    // Filter strictly valid, unexpired items expiring today or tomorrow
+    const urgentItems = [];
+    foods.forEach(food => {
+        const status = calculateExpiryStatus(food.expiryDate);
+        if (status.isValid && !status.isExpired && (status.diffDays === 0 || status.diffDays === 1)) {
+            urgentItems.push({ food, status });
+        }
+    });
+
+    if (urgentItems.length === 0) return;
+
+    // Avoid duplicate notifications using unique fingerprint of item IDs and status
+    const fingerprint = urgentItems.map(u => `${u.food._id || u.food.name}-${u.food.expiryDate}-${u.status.diffDays}`).sort().join("|");
+    if (!force && fingerprint === lastBrowserNotifiedFingerprint) {
+        return;
+    }
+    lastBrowserNotifiedFingerprint = fingerprint;
+
+    const tomorrowItems = urgentItems.filter(u => u.status.diffDays === 1);
+    const todayItems = urgentItems.filter(u => u.status.diffDays === 0);
+
+    let title = "ZeroWaste Expiry Notification";
+    let body = "";
+
+    if (tomorrowItems.length > 0 && todayItems.length === 0) {
+        title = tomorrowItems.length === 1
+            ? `⚠️ Expiry Alert: "${tomorrowItems[0].food.name}" expires tomorrow!`
+            : `⚠️ Expiry Alert: ${tomorrowItems.length} food items expire tomorrow!`;
+        body = tomorrowItems.map(u => `${u.food.name} (${u.food.quantity} ${u.food.unit})`).join(", ") + " expire tomorrow. Check healthy recipes or donate surplus!";
+    } else if (todayItems.length > 0) {
+        title = `🚨 Urgent Expiry Alert: ${urgentItems.length} item(s) expiring today & tomorrow!`;
+        body = urgentItems.map(u => `${u.food.name} (${u.status.diffDays === 0 ? 'Expires today' : 'Expires tomorrow'})`).join(", ") + ". Please consume or donate immediately.";
+    }
+
+    try {
+        new Notification(title, {
+            body: body,
+            icon: "/favicon.ico"
+        });
+    } catch (err) {
+        console.warn("Browser notification creation failed:", err);
+    }
+}
+
+// Scroll to and highlight the in-dashboard expiry notification container
+function scrollToExpiryBanner() {
+    const container = document.getElementById("expiryNotificationContainer");
+    if (container && container.style.display !== "none") {
+        container.scrollIntoView({ behavior: "smooth", block: "start" });
+        container.classList.remove("highlight-pulse");
+        void container.offsetWidth; // Force CSS reflow
+        container.classList.add("highlight-pulse");
+    }
+}
+
+// Render visible in-dashboard notifications for all foods expiring today and tomorrow
 function renderExpiryNotifications(foods) {
     const container = document.getElementById("expiryNotificationContainer");
     if (!container) return;
@@ -780,14 +862,23 @@ function renderExpiryNotifications(foods) {
         return;
     }
 
-    // Check all food items belonging to the logged-in user, identifying items expiring today or tomorrow
-    const urgentItems = [];
+    // Check all food items belonging to the logged-in user; strictly exclude expired foods
+    const todayItems = [];
+    const tomorrowItems = [];
+
     foods.forEach(food => {
         const status = calculateExpiryStatus(food.expiryDate);
-        if (status.isValid && (status.diffDays === 0 || status.diffDays === 1)) {
-            urgentItems.push({ food, status });
+        // Exclude expired food (diffDays < 0 or isExpired = true)
+        if (status.isValid && !status.isExpired) {
+            if (status.diffDays === 0) {
+                todayItems.push({ food, status });
+            } else if (status.diffDays === 1) {
+                tomorrowItems.push({ food, status });
+            }
         }
     });
+
+    const urgentItems = [...todayItems, ...tomorrowItems];
 
     if (urgentItems.length === 0) {
         container.style.display = "none";
@@ -795,26 +886,58 @@ function renderExpiryNotifications(foods) {
         return;
     }
 
-    // Prioritize today (diffDays === 0) then tomorrow (diffDays === 1)
-    urgentItems.sort((a, b) => a.status.diffDays - b.status.diffDays);
+    // Check if browser notifications should be triggered (if permission granted and set changed)
+    checkAndSendBrowserNotifications(foods, false);
 
-    const count = urgentItems.length;
-    const headerTitle = count === 1
-        ? `⚠️ Expiry Notification: 1 Food Item Expiring ${urgentItems[0].status.diffDays === 0 ? "Today" : "Tomorrow"}!`
-        : `⚠️ Expiry Notifications: ${count} Food Items Expiring Soon (Today & Tomorrow)!`;
+    const totalCount = urgentItems.length;
+    const tomorrowCount = tomorrowItems.length;
+    const todayCount = todayItems.length;
 
+    let headerTitle = "";
+    if (tomorrowCount > 0 && todayCount === 0) {
+        headerTitle = tomorrowCount === 1
+            ? `⚠️ Expiry Notification: 1 Food Item Expiring Tomorrow!`
+            : `⚠️ Expiry Notifications: All ${tomorrowCount} Food Items Expiring Tomorrow!`;
+    } else if (todayCount > 0 && tomorrowCount === 0) {
+        headerTitle = todayCount === 1
+            ? `🚨 Urgent Expiry Notification: 1 Food Item Expiring Today!`
+            : `🚨 Urgent Expiry Notifications: ${todayCount} Food Items Expiring Today!`;
+    } else {
+        headerTitle = `⚠️ Expiry Notifications: ${totalCount} Food Items Expiring Soon (${todayCount} Today, ${tomorrowCount} Tomorrow)!`;
+    }
+
+    // Browser notification status control pill/button
+    let notifPermissionHtml = "";
+    if ("Notification" in window) {
+        if (Notification.permission === "default") {
+            notifPermissionHtml = `
+                <button class="btn-sm btn-outline" onclick="requestBrowserNotificationPermission()" style="background: #fff; border-color: #f59e0b; color: #b45309; font-weight: 700; font-size: 11px; padding: 4px 10px; border-radius: 6px; cursor: pointer;">
+                    🔔 Enable Desktop Alerts
+                </button>
+            `;
+        } else if (Notification.permission === "granted") {
+            notifPermissionHtml = `
+                <span style="background: #dcfce7; color: #166534; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 12px; border: 1px solid #bbf7d0;">
+                    🔔 Desktop Alerts Active
+                </span>
+            `;
+        }
+    }
+
+    // Render EVERY urgent item (showing ALL items expiring tomorrow and today)
     const itemsHtml = urgentItems.map(({ food, status }) => {
         const isToday = status.diffDays === 0;
         const icon = isToday ? "🚨" : "⏳";
         const badgeColor = isToday ? "#dc2626" : "#d97706";
         const badgeBg = isToday ? "#fee2e2" : "#fef3c7";
         const daysRemainingText = isToday ? "0 days remaining" : "1 day remaining";
+        const statusLabel = isToday ? "Expires today" : "Expires tomorrow";
         const foodImg = getItemImage(food.name, food.category, false);
 
         return `
             <div class="expiry-notification-item" id="notif-item-${food._id}">
                 <div style="display: flex; align-items: center; gap: 14px; flex: 1; min-width: 220px;">
-                    <img src="${foodImg}" alt="${escapeHtml(food.name)}" onerror="handleImageError(this, '${escapeHtml(food.category || '')}', false)" style="width: 44px; height: 44px; object-fit: cover; border-radius: 8px; flex-shrink: 0; border: 1px solid #fde68a;">
+                    <img src="${foodImg}" alt="${escapeHtml(food.name)}" onerror="handleImageError(this, '${escapeHtml(food.category || '')}', false)" style="width: 44px; height: 44px; object-fit: cover; border-radius: 8px; flex-shrink: 0; border: 1px solid #fde68a; background: #fffbeb;">
                     <div>
                         <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                             <strong style="color: #173b2a; font-size: 15px;">${escapeHtml(food.name)}</strong>
@@ -822,7 +945,7 @@ function renderExpiryNotifications(foods) {
                                 (${food.quantity} ${escapeHtml(food.unit)})
                             </span>
                             <span style="background: ${badgeBg}; color: ${badgeColor}; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 12px; border: 1px solid ${isToday ? '#fca5a5' : '#fde68a'};">
-                                ${icon} ${status.statusText} (${daysRemainingText})
+                                ${icon} ${statusLabel} (${daysRemainingText})
                             </span>
                         </div>
                         <div style="font-size: 12px; color: #78350f; margin-top: 4px;">
@@ -835,6 +958,9 @@ function renderExpiryNotifications(foods) {
                     <button class="btn-sm btn-primary" onclick="quickDonateFood('${food._id}', '${escapeHtml(food.name)}', ${food.quantity}, '${escapeHtml(food.unit)}')">
                         🤝 Donate Now
                     </button>
+                    <button class="btn-sm btn-outline" onclick="viewRecipesForFood('${escapeHtml(food.name)}')">
+                        👨‍🍳 View AI Recipes
+                    </button>
                     <button class="btn-sm btn-outline" onclick="openEditFoodModal('${food._id}', '${escapeHtml(food.name)}', ${food.quantity}, '${escapeHtml(food.unit)}', '${escapeHtml(food.expiryDate)}', '${escapeHtml(food.category || '')}')">
                         ✏️ Edit
                     </button>
@@ -845,17 +971,20 @@ function renderExpiryNotifications(foods) {
 
     container.innerHTML = `
         <div class="expiry-notification-card">
-            <div class="expiry-notification-header">
-                <div class="expiry-notification-title">
+            <div class="expiry-notification-header" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap;">
+                <div class="expiry-notification-title" style="flex: 1; min-width: 250px;">
                     <span style="font-size: 26px; line-height: 1;">⚠️</span>
                     <div>
                         <h4 style="margin: 0 0 4px; color: #92400e; font-size: 16px; font-weight: 700;">
                             ${headerTitle}
                         </h4>
                         <p style="margin: 0; color: #b45309; font-size: 13px;">
-                            The food items below will expire today or tomorrow. Please consume them or donate them to local NGOs immediately to prevent food waste.
+                            The food items below will expire today or tomorrow. Please prepare healthy zero-waste meals or donate surplus portions to local NGOs to prevent food waste.
                         </p>
                     </div>
+                </div>
+                <div>
+                    ${notifPermissionHtml}
                 </div>
             </div>
             <div class="expiry-notification-list">
@@ -972,6 +1101,83 @@ async function loadFoodInventory() {
     }
 }
 
+// Clear in-dashboard toast alert when food is added with urgent expiry
+function showFoodAddedExpiryToast(name, quantity, unit, urgency = "tomorrow") {
+    const oldToast = document.getElementById("expiryToastAlert");
+    if (oldToast) oldToast.remove();
+
+    const isTomorrow = urgency === "tomorrow";
+    const title = isTomorrow ? "⚠️ Food Added: Expiring Tomorrow!" : "🚨 Food Added: Expiring Today!";
+    const msg = isTomorrow
+        ? `<strong>${escapeHtml(name)}</strong> (${quantity} ${escapeHtml(unit)}) was added to your inventory and <strong>expires tomorrow (1 day away)</strong>. Please prepare an AI recipe or donate surplus portions before it goes to waste!`
+        : `<strong>${escapeHtml(name)}</strong> (${quantity} ${escapeHtml(unit)}) was added and <strong>expires today</strong>! Please consume or donate immediately.`;
+
+    const toast = document.createElement("div");
+    toast.id = "expiryToastAlert";
+    toast.style.cssText = `
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        background: #ffffff;
+        border-left: 6px solid ${isTomorrow ? '#f59e0b' : '#dc2626'};
+        box-shadow: 0 10px 25px -5px rgba(0,0,0,0.25), 0 8px 10px -6px rgba(0,0,0,0.1);
+        border-radius: 10px;
+        padding: 16px 20px;
+        max-width: 440px;
+        z-index: 99999;
+        display: flex;
+        gap: 14px;
+        align-items: flex-start;
+        border-top: 1px solid #f1f5f9;
+        border-right: 1px solid #f1f5f9;
+        border-bottom: 1px solid #f1f5f9;
+    `;
+
+    toast.innerHTML = `
+        <span style="font-size: 28px; line-height: 1;">${isTomorrow ? '⏳' : '🚨'}</span>
+        <div style="flex: 1;">
+            <h4 style="margin: 0 0 6px; color: ${isTomorrow ? '#b45309' : '#b91c1c'}; font-size: 15px; font-weight: 700;">${title}</h4>
+            <p style="margin: 0 0 10px; color: #374151; font-size: 13px; line-height: 1.45;">${msg}</p>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <button class="btn-sm btn-primary" onclick="scrollToExpiryBanner(); document.getElementById('expiryToastAlert')?.remove();">
+                    View Notifications
+                </button>
+                <button class="btn-sm btn-outline" onclick="viewRecipesForFood('${escapeHtml(name)}'); document.getElementById('expiryToastAlert')?.remove();">
+                    👨‍🍳 View AI Recipes
+                </button>
+                <button class="btn-sm btn-outline" onclick="document.getElementById('expiryToastAlert')?.remove();">
+                    Dismiss
+                </button>
+            </div>
+        </div>
+        <button onclick="document.getElementById('expiryToastAlert')?.remove();" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #9ca3af; line-height: 1; padding: 0 4px;">&times;</button>
+    `;
+
+    document.body.appendChild(toast);
+
+    // Smoothly scroll to and pulse the in-dashboard expiry notification container
+    scrollToExpiryBanner();
+
+    // Trigger browser notification if permission granted
+    if ("Notification" in window && Notification.permission === "granted") {
+        try {
+            new Notification(title, {
+                body: `${name} (${quantity} ${unit}) expires ${urgency}! Check healthy recipe ideas or donate to prevent food waste.`,
+                icon: "/favicon.ico"
+            });
+        } catch (e) {
+            console.warn("Browser notification error:", e);
+        }
+    }
+
+    // Auto-dismiss toast after 10 seconds
+    setTimeout(() => {
+        if (toast && toast.parentNode) {
+            toast.remove();
+        }
+    }, 10000);
+}
+
 async function saveFood(event) {
     if (event) event.preventDefault();
     const user = getLoggedInUser();
@@ -997,6 +1203,9 @@ async function saveFood(event) {
         return;
     }
 
+    // Calculate expiry status using calendar days
+    const status = calculateExpiryStatus(expiryDate);
+
     try {
         const res = await fetch(`${API_BASE}/api/foods`, {
             method: "POST",
@@ -1021,8 +1230,17 @@ async function saveFood(event) {
         document.getElementById("foodUnit").value = "";
         document.getElementById("foodExpiry").value = "";
 
-        alert("✅ Food item added to inventory!");
-        loadFoodInventory();
+        // Reload inventory immediately to reflect new item in dashboard, counters, notifications, and AI recipes
+        await loadFoodInventory();
+
+        // When a user adds food with an expiry date exactly one day away, show a clear notification on the dashboard
+        if (status.diffDays === 1) {
+            showFoodAddedExpiryToast(name, quantity, unit, "tomorrow");
+        } else if (status.diffDays === 0) {
+            showFoodAddedExpiryToast(name, quantity, unit, "today");
+        } else {
+            alert("✅ Food item added to inventory!");
+        }
     } catch (e) {
         alert("❌ Error saving food item.");
     }
@@ -1210,34 +1428,643 @@ function scrollToDonationForm() {
     }
 }
 
-function updateAISuggestions(foods, expiringCount) {
+/* ========================================================
+   HEALTHY AI RECIPE SUGGESTIONS & NUTRITION ENGINE
+======================================================== */
+
+let cachedAIRecipes = [];
+
+// Client-side healthy recipe database for instant zero-waste cooking
+const CLIENT_RECIPE_KB = [
+    // --- MILK / DAIRY ---
+    {
+        id: "recipe_golden_milk",
+        keywords: ["milk", "dairy", "toned milk", "cow milk", "buffalo milk", "fresh milk"],
+        name: "Golden Turmeric Spiced Milk (Haldi Doodh)",
+        prepTime: "2 mins",
+        cookTime: "5 mins",
+        totalTime: "7 mins",
+        isVegetarian: true,
+        dietaryTags: ["🥦 100% Vegetarian", "🌱 Immunity Booster", "☕ Warming Drink"],
+        matchIngredient: "milk",
+        defaultQty: "250 - 500 ml",
+        optionalPantryAdditions: [
+            "1/4 tsp ground turmeric powder (pantry staple)",
+            "Pinch of freshly ground black pepper (enhances turmeric absorption)",
+            "1 tsp honey or jaggery (optional natural sweetener)",
+            "Pinch of ground cinnamon or cardamom (optional aromatic)"
+        ],
+        steps: [
+            "Pour your inventory milk into a small saucepan over medium-low heat.",
+            "Whisk in the turmeric powder and a pinch of black pepper until smoothly combined.",
+            "Warm gently until steaming (do not boil over), then turn off the stove.",
+            "Stir in honey or jaggery to taste, pour into a mug, and sip warm."
+        ],
+        healthBenefit: "Rich in bioavailable calcium for strong bones and Curcumin from turmeric; provides powerful anti-inflammatory and antioxidant support to soothe digestion and promote restorative sleep.",
+        vegetarianAlternative: "Plant-Based Alternative: Works seamlessly with soy, almond, oat, or coconut milk for a 100% lactose-free vegan option."
+    },
+    {
+        id: "recipe_homemade_paneer",
+        keywords: ["milk", "dairy", "whole milk"],
+        name: "Fresh Homemade Soft Paneer (Cottage Cheese)",
+        prepTime: "5 mins",
+        cookTime: "10 mins",
+        totalTime: "15 mins",
+        isVegetarian: true,
+        dietaryTags: ["🥦 100% Vegetarian", "💪 High Protein", "🥗 Fresh Dairy"],
+        matchIngredient: "milk",
+        defaultQty: "1 - 2 litres",
+        optionalPantryAdditions: [
+            "1-2 tbsp fresh lemon juice or white vinegar (acid to curdle)",
+            "Pinch of salt (optional seasoning)",
+            "Cold water for rinsing"
+        ],
+        steps: [
+            "Bring your inventory milk to a gentle rolling boil in a deep pot, stirring occasionally so it doesn't scorch.",
+            "Turn off the heat and slowly drizzle in lemon juice 1 tbsp at a time while stirring gently until green whey separates from white curds.",
+            "Line a colander with a clean cotton cloth or fine sieve, pour the curds through, and rinse under cold tap water to wash away lemon acidity.",
+            "Gather the cloth edges, squeeze out excess liquid, and press with a flat weight for 15 minutes to firm into fresh paneer ready for salads or curries!"
+        ],
+        healthBenefit: "Concentrated source of high-quality casein protein and phosphorus; supports muscle repair, satiety, and metabolic strength without preservatives.",
+        vegetarianAlternative: "Vegan Alternative: If dairy-free, press firm tofu with a dash of nutritional yeast and olive oil as a direct substitute."
+    },
+
+    // --- BREAD / BAKERY ---
+    {
+        id: "recipe_bread_upma",
+        keywords: ["bread", "loaf", "toast", "bun", "pav", "roti", "bakery"],
+        name: "Healthy Savory Vegetable Bread Upma",
+        prepTime: "5 mins",
+        cookTime: "8 mins",
+        totalTime: "13 mins",
+        isVegetarian: true,
+        dietaryTags: ["🥦 100% Vegetarian", "⚡ Quick Energizer", "🍳 Stovetop Classic"],
+        matchIngredient: "bread",
+        defaultQty: "3 - 5 slices",
+        optionalPantryAdditions: [
+            "1 tsp cooking oil or ghee",
+            "1/2 tsp mustard seeds & pinch of cumin seeds",
+            "Pinch of turmeric powder & salt to taste",
+            "1/4 cup water to moisten bread cubes",
+            "Optional: Any diced onions, green chilies, or peas from your kitchen"
+        ],
+        steps: [
+            "Cut or tear your inventory bread slices into bite-sized 1-inch squares; lightly sprinkle with 2 tablespoons of water so they stay soft.",
+            "Heat 1 tsp oil in a skillet over medium flame. Add mustard and cumin seeds until they pop, then sauté any available chopped vegetables for 2 mins.",
+            "Sprinkle in turmeric powder and salt, then gently fold in the bread cubes.",
+            "Toss on low heat for 3-4 minutes until the bread absorbs the spices and turns golden with slightly crisp edges. Serve hot!"
+        ],
+        healthBenefit: "Provides easily digestible complex carbohydrates and B vitamins for sustained daytime vitality; light on the stomach and zero oil wastage.",
+        vegetarianAlternative: "Vegan & Gluten-Free: Works wonderfully with gluten-free bread, millet bread, or torn leftover rotis."
+    },
+    {
+        id: "recipe_bruschetta",
+        keywords: ["bread", "toast", "loaf", "bun"],
+        name: "Crispy Garlic Tomato Herb Bruschetta",
+        prepTime: "4 mins",
+        cookTime: "5 mins",
+        totalTime: "9 mins",
+        isVegetarian: true,
+        dietaryTags: ["🥦 100% Vegetarian", "🌱 Mediterranean Style", "🍞 Crisp & Light"],
+        matchIngredient: "bread",
+        defaultQty: "2 - 4 slices",
+        optionalPantryAdditions: [
+            "1 clove garlic (peeled and cut in half)",
+            "1 tsp olive oil or vegetable oil",
+            "Pinch of salt, black pepper, and dried oregano/herbs"
+        ],
+        steps: [
+            "Toast your inventory bread slices in a dry pan or toaster until golden and crusty.",
+            "While the toast is hot, gently rub the cut side of a garlic clove across the surface for a light, aromatic garlic crust.",
+            "Drizzle with a few drops of olive oil, sprinkle with salt and dried herbs, and top with diced tomatoes if available.",
+            "Serve immediately while warm and delightfully crunchy."
+        ],
+        healthBenefit: "Garlic contains active allicin that promotes healthy blood circulation and natural antimicrobial resistance.",
+        vegetarianAlternative: "Naturally 100% vegan. Suitable for any dietary preference."
+    },
+
+    // --- TOMATOES ---
+    {
+        id: "recipe_tomato_rasam",
+        keywords: ["tomato", "tomatoes", "cherry tomato", "tamatar"],
+        name: "Comforting Spiced Fresh Tomato Rasam / Soup",
+        prepTime: "4 mins",
+        cookTime: "10 mins",
+        totalTime: "14 mins",
+        isVegetarian: true,
+        dietaryTags: ["🥦 100% Vegetarian", "🌱 Gut Cleansing", "🥣 Comfort Broth"],
+        matchIngredient: "tomato",
+        defaultQty: "2 - 3 ripe tomatoes",
+        optionalPantryAdditions: [
+            "2 cups drinking water",
+            "1/2 tsp cumin seeds & 1/2 tsp black pepper",
+            "1-2 crushed garlic cloves",
+            "Pinch of turmeric powder and salt to taste",
+            "1/2 tsp cooking oil or ghee for tempering"
+        ],
+        steps: [
+            "Roughly chop your inventory tomatoes and mash them in a small pot with 2 cups of water (or blend smoothly).",
+            "Bring to a gentle boil with salt, crushed garlic, and a pinch of turmeric for 6-7 minutes until tomatoes are thoroughly cooked.",
+            "In a small ladle or spoon, heat 1/2 tsp oil, crackle cumin seeds and black pepper, and pour into the simmering soup.",
+            "Garnish with fresh coriander if available. Enjoy as a warming digestive broth or with steamed rice!"
+        ],
+        healthBenefit: "Packed with powerful Lycopene and Vitamin C; aids digestion, cleanses the gut, and strengthens immune defenses against seasonal colds.",
+        vegetarianAlternative: "Naturally 100% plant-based and vegan. Add cooked yellow lentils (dal) to increase plant protein."
+    },
+    {
+        id: "recipe_tomato_chutney",
+        keywords: ["tomato", "tomatoes", "tamatar"],
+        name: "Quick Homestyle Tomato & Onion Skillet Chutney",
+        prepTime: "5 mins",
+        cookTime: "8 mins",
+        totalTime: "13 mins",
+        isVegetarian: true,
+        dietaryTags: ["🥦 100% Vegetarian", "🌶️ Tangy & Zesty", "🥘 Versatile Side"],
+        matchIngredient: "tomato",
+        defaultQty: "2 - 4 ripe tomatoes",
+        optionalPantryAdditions: [
+            "1 tsp cooking oil",
+            "1/2 tsp mustard seeds",
+            "Pinch of chili powder, salt, and turmeric",
+            "1 small onion or garlic clove (optional)"
+        ],
+        steps: [
+            "Finely dice your inventory tomatoes (and onion if on hand).",
+            "Heat 1 tsp oil in a pan, crackle mustard seeds, and sauté onions for 2 minutes until translucent.",
+            "Add chopped tomatoes, salt, turmeric, and chili powder. Cook over medium heat for 6-7 minutes until soft, jammy, and glossy.",
+            "Serve as a vibrant side for rotis, rice, idlis, dosas, or as a savory sandwich spread."
+        ],
+        healthBenefit: "Cooked tomatoes release concentrated bioavailable Lycopene, a potent antioxidant that supports cardiovascular health.",
+        vegetarianAlternative: "Naturally 100% vegan, gluten-free, and nut-free."
+    },
+
+    // --- POTATOES ---
+    {
+        id: "recipe_roasted_potatoes",
+        keywords: ["potato", "potatoes", "aloo", "sweet potato"],
+        name: "Simple Herb Spiced Golden Roasted Potatoes",
+        prepTime: "5 mins",
+        cookTime: "15 mins",
+        totalTime: "20 mins",
+        isVegetarian: true,
+        dietaryTags: ["🥦 100% Vegetarian", "🥔 Wholesome Carb", "🔥 Crisp & Tender"],
+        matchIngredient: "potato",
+        defaultQty: "2 - 4 medium potatoes",
+        optionalPantryAdditions: [
+            "1-2 tsp cooking oil",
+            "1/2 tsp cumin powder or crushed cumin seeds",
+            "1/2 tsp turmeric powder & salt to taste",
+            "Pinch of black pepper or chili flakes"
+        ],
+        steps: [
+            "Scrub and dice your inventory potatoes into small 1/2-inch cubes (peeling is optional).",
+            "Heat 1-2 tsp oil in a heavy-bottomed skillet over medium heat.",
+            "Add the potato cubes, season with turmeric, cumin, and salt, and stir to coat evenly.",
+            "Cover with a lid and cook on medium-low for 10 minutes, then uncover and fry for 4-5 minutes until golden and crisp on the edges."
+        ],
+        healthBenefit: "Naturally potassium-rich and a great source of Vitamin B6; provides clean sustained cellular energy without saturated fats.",
+        vegetarianAlternative: "Naturally 100% vegan and gluten-free. Sweet potatoes can be cooked identically with extra Vitamin A."
+    },
+
+    // --- RICE ---
+    {
+        id: "recipe_lemon_rice",
+        keywords: ["rice", "cooked rice", "basmati", "white rice", "brown rice", "chawal"],
+        name: "Fragrant Zesty Homestyle Lemon Rice",
+        prepTime: "3 mins",
+        cookTime: "6 mins",
+        totalTime: "9 mins",
+        isVegetarian: true,
+        dietaryTags: ["🥦 100% Vegetarian", "🍋 Vitamin C Rich", "⚡ Fast One-Pot"],
+        matchIngredient: "rice",
+        defaultQty: "1 - 2 cups cooked rice",
+        optionalPantryAdditions: [
+            "1-2 tbsp fresh lemon juice",
+            "1 tsp cooking oil",
+            "1/2 tsp mustard seeds & pinch of turmeric powder",
+            "Salt to taste",
+            "Optional: Handful of peanuts or green chili"
+        ],
+        steps: [
+            "Fluff your inventory cooked rice gently with a fork so grains separate cleanly.",
+            "Heat 1 tsp oil in a pan, add mustard seeds (and peanuts/chili if on hand) until aromatic.",
+            "Stir in turmeric powder and salt, turn off heat, and immediately drizzle in fresh lemon juice.",
+            "Pour the warm tempering over the rice and fold gently until every grain turns a cheerful sunny yellow. Enjoy warm!"
+        ],
+        healthBenefit: "Combines energizing complex carbohydrates with citric acid and Vitamin C, which improves iron absorption from plant foods.",
+        vegetarianAlternative: "Naturally 100% vegan and gluten-free. For extra protein, toss in boiled chickpeas or green peas."
+    },
+
+    // --- EGGS ---
+    {
+        id: "recipe_veggie_omelet",
+        keywords: ["egg", "eggs", "anda", "muttai"],
+        name: "Fluffy Garden Vegetable Skillet Omelet",
+        prepTime: "3 mins",
+        cookTime: "5 mins",
+        totalTime: "8 mins",
+        isVegetarian: false,
+        dietaryTags: ["🥚 Eggetarian", "💪 High Complete Protein", "🍳 Quick Breakfast"],
+        matchIngredient: "egg",
+        defaultQty: "2 eggs",
+        optionalPantryAdditions: [
+            "1 tsp cooking oil or butter",
+            "Pinch of salt and black pepper",
+            "Optional: Diced onion, tomato, or herbs from your fridge"
+        ],
+        steps: [
+            "Crack your inventory eggs into a bowl, season with salt and black pepper, and beat briskly with a fork for 30 seconds until frothy.",
+            "Heat 1 tsp oil in a small non-stick pan over medium flame.",
+            "Pour the beaten eggs in, allowing them to spread across the pan. Sauté any chopped veggies if desired.",
+            "Cook for 2-3 minutes until bottom is set, fold in half, and slide onto your plate."
+        ],
+        healthBenefit: "Offers all 9 essential amino acids, choline for cognitive health, and Vitamin D for metabolic vitality.",
+        vegetarianAlternative: "Strict Vegetarian / Vegan Option: Swap eggs for 4 tbsp besan (chickpea flour) whisked with water to make a golden high-protein vegetable cheela!"
+    },
+
+    // --- WHEAT / FLOUR ---
+    {
+        id: "recipe_wheat_phulka",
+        keywords: ["wheat", "flour", "atta", "maida", "whole wheat"],
+        name: "Fresh Whole Wheat Homestyle Soft Phulka Rotis",
+        prepTime: "6 mins",
+        cookTime: "6 mins",
+        totalTime: "12 mins",
+        isVegetarian: true,
+        dietaryTags: ["🥦 100% Vegetarian", "🌾 Whole Grain Fiber", "🥞 Traditional Staple"],
+        matchIngredient: "flour",
+        defaultQty: "1 - 2 cups",
+        optionalPantryAdditions: [
+            "Warm water to knead (approx 1/2 cup)",
+            "Pinch of salt (optional)",
+            "1/2 tsp ghee or oil (optional for soft finish)"
+        ],
+        steps: [
+            "In a wide bowl, mix your inventory whole wheat flour with a pinch of salt. Gradually add warm water and knead for 3-4 minutes into a pliable, smooth dough.",
+            "Divide into lemon-sized balls, dust lightly with dry flour, and roll out with a rolling pin into thin, even circles.",
+            "Place on a hot tawa/skillet for 30 seconds until bubbles appear, flip, and cook the other side.",
+            "Puff over the open flame or press gently with a clean cloth until ballooned. Serve warm!"
+        ],
+        healthBenefit: "Whole wheat flour is abundant in dietary insoluble fiber to nourish gut microbiome, regulate bowel movement, and balance blood sugar levels.",
+        vegetarianAlternative: "Naturally 100% vegan. If avoiding gluten, swap whole wheat with jowar (sorghum) or bajra (millet) flour."
+    },
+
+    // --- FRUITS / APPLES ---
+    {
+        id: "recipe_cinnamon_apples",
+        keywords: ["apple", "apples", "banana", "fruit", "fruits", "seb"],
+        name: "Warm Cinnamon Stewed Spiced Fruit",
+        prepTime: "3 mins",
+        cookTime: "6 mins",
+        totalTime: "9 mins",
+        isVegetarian: true,
+        dietaryTags: ["🥦 100% Vegetarian", "🍎 Gentle on Digestion", "🍯 Naturally Sweet"],
+        matchIngredient: "fruit",
+        defaultQty: "1 - 2 fruits",
+        optionalPantryAdditions: [
+            "2-3 tbsp water",
+            "Pinch of ground cinnamon powder",
+            "1 tsp honey, maple syrup, or jaggery (optional)"
+        ],
+        steps: [
+            "Core and dice your inventory fruit into bite-sized pieces.",
+            "Add to a small saucepan with 2-3 tablespoons of water and a pinch of ground cinnamon.",
+            "Simmer over low heat for 5-6 minutes until soft, tender, and fragrant.",
+            "Enjoy warm as a comforting gut-friendly snack, oatmeal topping, or healthy dessert."
+        ],
+        healthBenefit: "Cooking activates pectin, a prebiotic soluble fiber that strengthens the gut mucosal barrier and eases digestion.",
+        vegetarianAlternative: "Naturally 100% plant-based, vegan, and gluten-free."
+    }
+];
+
+// Synthesize dynamic beginner-friendly recipes for unique / custom inventory items
+function synthesizeDynamicClientRecipe(foodItem) {
+    const name = foodItem.name || "Produce";
+    const qty = `${foodItem.quantity || 1} ${foodItem.unit || 'unit'}`;
+    const status = calculateExpiryStatus(foodItem.expiryDate);
+    const isUrgent = status.diffDays === 0 || status.diffDays === 1;
+    const expiryLabel = status.diffDays === 0 ? "Expires today!" : (status.diffDays === 1 ? "Expires tomorrow!" : "");
+
+    return {
+        id: `custom_${String(foodItem._id || name).replace(/[^a-zA-Z0-9]/g, '_')}`,
+        name: `Healthy Homestyle Sautéed ${name}`,
+        prepTime: "3 mins",
+        cookTime: "7 mins",
+        totalTime: "10 mins",
+        isVegetarian: true,
+        dietaryTags: ["🥦 100% Vegetarian", "🌱 Fresh & Wholesome", "⚡ Beginner Friendly"],
+        matchIngredient: name,
+        inventoryIngredients: [
+            {
+                name: name,
+                quantity: qty,
+                isExpiringSoon: isUrgent,
+                expiryText: expiryLabel
+            }
+        ],
+        optionalPantryAdditions: [
+            "1 tsp cooking oil or olive oil",
+            "1/2 tsp cumin seeds or mustard seeds (pantry staple)",
+            "Pinch of salt, black pepper, and turmeric powder to taste",
+            "2-3 tbsp water (to steam if needed)"
+        ],
+        steps: [
+            `Rinse and chop your inventory ${name} into uniform, bite-sized pieces for even cooking.`,
+            "Warm 1 tsp of cooking oil in a skillet over medium flame, then add cumin or mustard seeds until aromatic.",
+            `Add the prepared ${name}, sprinkle lightly with salt and turmeric, and sauté for 3-4 minutes.`,
+            "Add 2 tablespoons of water, cover with a lid on low heat, and steam for 5-6 minutes until tender and flavorful. Serve warm!"
+        ],
+        healthBenefit: `Provides clean, unrefined dietary fiber, essential micronutrients, and hydration straight from fresh ${name} without heavy fats or artificial seasonings.`,
+        vegetarianAlternative: "Naturally 100% plant-based and vegan. Pairs wonderfully with steamed rice, flatbreads, or as a warm grain bowl topping.",
+        donationOption: {
+            message: `Have extra ${name} (${qty}) that you won't finish today? You can also list it for NGO donation to help feed those in need.`,
+            foodId: foodItem._id || "",
+            foodName: name,
+            quantity: foodItem.quantity,
+            unit: foodItem.unit
+        }
+    };
+}
+
+// Generate client-side AI recipes from inventory
+function generateClientAIRecipes(validFoods) {
+    if (!validFoods || validFoods.length === 0) {
+        return [
+            {
+                id: "starter_golden_milk",
+                name: "Golden Turmeric Spiced Milk (Zero-Waste Starter)",
+                prepTime: "2 mins",
+                cookTime: "5 mins",
+                totalTime: "7 mins",
+                isVegetarian: true,
+                dietaryTags: ["🥦 100% Vegetarian", "🌱 Immunity Booster"],
+                matchIngredient: "Milk",
+                inventoryIngredients: [
+                    { name: "Fresh Milk (or plant-based milk)", quantity: "250 ml", isExpiringSoon: false, expiryText: "Pantry staple" }
+                ],
+                optionalPantryAdditions: ["Pinch of turmeric powder", "Pinch of black pepper", "1 tsp honey or jaggery"],
+                steps: [
+                    "Warm milk gently in a saucepan over medium heat.",
+                    "Whisk in turmeric and a pinch of black pepper.",
+                    "Pour into your favorite mug, sweeten with honey, and enjoy!"
+                ],
+                healthBenefit: "Soothes inflammation, boosts immunity, and promotes restorative natural sleep.",
+                vegetarianAlternative: "Vegan: Use almond, oat, or soy milk.",
+                donationOption: {
+                    message: "Log your household surplus in ZeroWaste to unlock automated expiry alerts and community sharing.",
+                    foodId: "",
+                    foodName: "Surplus"
+                }
+            },
+            {
+                id: "starter_tomato_rasam",
+                name: "Comforting Fresh Tomato Rasam Broth",
+                prepTime: "4 mins",
+                cookTime: "10 mins",
+                totalTime: "14 mins",
+                isVegetarian: true,
+                dietaryTags: ["🥦 100% Vegetarian", "🥣 Gut Cleansing"],
+                matchIngredient: "Tomatoes",
+                inventoryIngredients: [
+                    { name: "Ripe Tomatoes", quantity: "2 pieces", isExpiringSoon: false, expiryText: "Pantry staple" }
+                ],
+                optionalPantryAdditions: ["2 cups water", "1/2 tsp cumin seeds", "Crushed garlic & salt to taste"],
+                steps: [
+                    "Mash ripe tomatoes in 2 cups of water with salt and crushed garlic.",
+                    "Simmer for 7 minutes, temper with cumin seeds in 1/2 tsp oil, and enjoy warm!"
+                ],
+                healthBenefit: "High in Lycopene and Vitamin C; flushes toxins and supports gut immunity.",
+                vegetarianAlternative: "100% vegan and gluten-free.",
+                donationOption: {
+                    message: "Log your household surplus in ZeroWaste to unlock automated expiry alerts and community sharing.",
+                    foodId: "",
+                    foodName: "Surplus"
+                }
+            }
+        ];
+    }
+
+    // Sort valid foods by urgency: expiring today (0) or tomorrow (1) first
+    const sorted = [...validFoods].sort((a, b) => {
+        const statA = calculateExpiryStatus(a.expiryDate);
+        const statB = calculateExpiryStatus(b.expiryDate);
+        return (statA.diffDays || 99) - (statB.diffDays || 99);
+    });
+
+    const matchedRecipes = [];
+    const usedRecipeIds = new Set();
+
+    for (const food of sorted) {
+        const foodNameLower = (food.name || "").toLowerCase().trim();
+        const foodCategoryLower = (food.category || "").toLowerCase().trim();
+        const status = calculateExpiryStatus(food.expiryDate);
+        const isExpiringSoon = status.diffDays === 0 || status.diffDays === 1;
+        const expiryLabel = status.diffDays === 0 ? "Expires today!" : (status.diffDays === 1 ? "Expires tomorrow!" : "");
+
+        const candidateKbs = CLIENT_RECIPE_KB.filter(kb => {
+            if (usedRecipeIds.has(kb.id)) return false;
+            return kb.keywords.some(kw => foodNameLower.includes(kw) || foodCategoryLower.includes(kw));
+        });
+
+        for (const kb of candidateKbs) {
+            usedRecipeIds.add(kb.id);
+
+            const recipe = {
+                id: kb.id,
+                name: kb.name,
+                prepTime: kb.prepTime,
+                cookTime: kb.cookTime,
+                totalTime: kb.totalTime,
+                isVegetarian: kb.isVegetarian,
+                dietaryTags: [...kb.dietaryTags],
+                matchIngredient: food.name,
+                inventoryIngredients: [
+                    {
+                        name: food.name,
+                        quantity: `${food.quantity} ${food.unit}`,
+                        isExpiringSoon: isExpiringSoon,
+                        expiryText: expiryLabel
+                    }
+                ],
+                optionalPantryAdditions: kb.optionalPantryAdditions,
+                steps: kb.steps,
+                healthBenefit: kb.healthBenefit,
+                vegetarianAlternative: kb.vegetarianAlternative,
+                donationOption: {
+                    message: `Have extra ${food.name} (${food.quantity} ${food.unit}) that you won't finish today? You can also list it for NGO donation to help feed those in need.`,
+                    foodId: food._id || "",
+                    foodName: food.name,
+                    quantity: food.quantity,
+                    unit: food.unit
+                }
+            };
+
+            matchedRecipes.push(recipe);
+            if (matchedRecipes.length >= 4) break;
+        }
+
+        if (matchedRecipes.length >= 4) break;
+    }
+
+    // Dynamic synthesis if items didn't match knowledge base
+    if (matchedRecipes.length < 2) {
+        for (const food of sorted) {
+            const alreadyUsed = matchedRecipes.some(r => r.inventoryIngredients.some(i => i.name === food.name));
+            if (!alreadyUsed) {
+                matchedRecipes.push(synthesizeDynamicClientRecipe(food));
+                if (matchedRecipes.length >= 3) break;
+            }
+        }
+    }
+
+    return matchedRecipes;
+}
+
+// Master AI Suggestions & Healthy Recipes Renderer
+async function updateAISuggestions(foods, expiringCount) {
     const box = document.getElementById("aiSuggestionBox");
     const alerts = document.getElementById("expiryAlerts");
 
     if (!box) return;
 
-    if (expiringCount > 0) {
+    // Strictly filter out expired foods: NEVER recommend expired food for cooking or consumption!
+    const validFoods = (Array.isArray(foods) ? foods : []).filter(f => {
+        const status = calculateExpiryStatus(f.expiryDate);
+        return status.isValid && !status.isExpired;
+    });
+
+    let recipes = [];
+
+    try {
+        // Attempt to fetch from backend AI Recipe service
+        const res = await fetch(`${API_BASE}/api/ai/recipes`, {
+            method: "POST",
+            headers: authHeaders({ "Content-Type": "application/json" }),
+            body: JSON.stringify({ foods: validFoods })
+        });
+
+        if (res.ok) {
+            const data = await res.json();
+            if (Array.isArray(data.recipes) && data.recipes.length > 0) {
+                recipes = data.recipes;
+            }
+        }
+    } catch (e) {
+        console.warn("Could not fetch remote recipes, synthesizing local intelligent suggestions:", e);
+    }
+
+    // Fallback to client-side engine if remote API returned empty, failed, or without external API key
+    if (!recipes || recipes.length === 0) {
+        recipes = generateClientAIRecipes(validFoods);
+    }
+
+    cachedAIRecipes = recipes;
+
+    // Render healthy recipes in the AI Suggestion Box
+    if (recipes.length > 0) {
+        const recipeCardsHtml = recipes.map(recipe => {
+            const inventoryTags = (recipe.inventoryIngredients || []).map(ing => {
+                const badge = ing.isExpiringSoon
+                    ? `<span style="background: #fef3c7; color: #b45309; padding: 2px 6px; border-radius: 10px; font-size: 10px; font-weight: 700; border: 1px solid #fde68a; margin-left: 4px;">⏳ ${escapeHtml(ing.expiryText || 'Expires soon')}</span>`
+                    : '';
+                return `
+                    <span class="recipe-ingredient-tag">
+                        🛒 ${escapeHtml(ing.name)} (${escapeHtml(ing.quantity)})${badge}
+                    </span>
+                `;
+            }).join("");
+
+            const pantryList = (recipe.optionalPantryAdditions || []).map(opt => `&bull; ${escapeHtml(opt)}`).join("<br>");
+            const optionalPantryHtml = pantryList ? `
+                <div class="recipe-optional-box" style="margin-bottom: 10px;">
+                    <strong style="color: #475569;">🧂 Optional Pantry Additions:</strong><br>
+                    ${pantryList}
+                </div>
+            ` : '';
+
+            const stepsHtml = (recipe.steps || []).map(step => `<li>${escapeHtml(step)}</li>`).join("");
+
+            const donationBtnHtml = recipe.donationOption && recipe.donationOption.foodName ? `
+                <button class="btn-sm btn-outline" onclick="quickDonateFood('${recipe.donationOption.foodId}', '${escapeHtml(recipe.donationOption.foodName)}', '${recipe.donationOption.quantity || 1}', '${escapeHtml(recipe.donationOption.unit || 'portion')}')" style="border-color: #2e8b57; color: #2e8b57; font-weight: 600;">
+                    🤝 Donate Extra (${escapeHtml(recipe.donationOption.foodName)})
+                </button>
+            ` : '';
+
+            return `
+                <div class="ai-recipe-card" id="recipe-${recipe.id}">
+                    <div class="ai-recipe-header">
+                        <div>
+                            <h4 class="ai-recipe-title">${escapeHtml(recipe.name)}</h4>
+                            <div class="ai-recipe-meta">
+                                <span>⏱️ Prep: ${escapeHtml(recipe.prepTime)} &bull; Cook: ${escapeHtml(recipe.cookTime)}</span>
+                                <span class="recipe-badge-veg">${recipe.isVegetarian ? '🥦 100% Vegetarian' : '🥗 Fresh'}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ai-recipe-body">
+                        <div class="recipe-section-label">🛒 From Your Inventory:</div>
+                        <div class="recipe-ingredients-list">
+                            ${inventoryTags}
+                        </div>
+                        ${optionalPantryHtml}
+                        <div class="recipe-section-label" style="margin-top: 10px;">👩‍🍳 Simple Steps:</div>
+                        <ol class="recipe-steps-list">
+                            ${stepsHtml}
+                        </ol>
+                        <div class="recipe-benefit-callout">
+                            <strong>💚 Health Benefit:</strong> ${escapeHtml(recipe.healthBenefit)}
+                        </div>
+                        ${recipe.vegetarianAlternative ? `
+                            <div class="recipe-alt-callout">
+                                <strong>🌱 Vegetarian Alternative:</strong> ${escapeHtml(recipe.vegetarianAlternative)}
+                            </div>
+                        ` : ''}
+                        <div class="recipe-actions">
+                            <button class="btn-sm btn-primary" onclick="openAiRecipeModal('${recipe.id}')">
+                                👨‍🍳 Cook / View Full Recipe
+                            </button>
+                            ${donationBtnHtml}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join("");
+
+        const urgentNotice = expiringCount > 0
+            ? `<div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; color: #92400e; font-size: 13px;">
+                <span style="font-size: 20px;">⚡</span>
+                <div>
+                    <strong>Action Priority:</strong> ${expiringCount} item(s) are nearing their expiry date. The recipes below prioritize your urgent food so nothing goes to waste!
+                </div>
+               </div>`
+            : '';
+
         box.innerHTML = `
-            <h3>⚠️ Action Recommended: ${expiringCount} Item(s) Expiring Soon</h3>
-            <p>You have surplus items nearing their shelf-life. Donate eligible items to local NGOs or freeze/prepare them today to ensure zero waste.</p>
-        `;
-    } else if (foods.length > 0) {
-        box.innerHTML = `
-            <h3>✅ Great Job! Your Food Inventory is Well-Managed</h3>
-            <p>You have ${foods.length} items logged with safe shelf-life. Share any surplus produce with partner NGOs before it reaches critical dates.</p>
+            ${urgentNotice}
+            <div style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                <h3 style="margin: 0; color: #173b2a; font-size: 17px; font-weight: 700;">
+                    🤖 Smart AI Recipes Tailored To Your Inventory
+                </h3>
+                <span style="font-size: 12px; color: #5a7567; font-weight: 600;">
+                    ${recipes.length} healthy zero-waste ideas generated
+                </span>
+            </div>
+            <div class="ai-recipe-grid">
+                ${recipeCardsHtml}
+            </div>
         `;
     } else {
         box.innerHTML = `
             <h3>🤖 Inventory Empty</h3>
-            <p>Add household food items above to unlock automated shelf-life tracking and smart redistribution tips.</p>
+            <p>Add household food items above to unlock automated shelf-life tracking, healthy recipe ideas, and community sharing.</p>
         `;
     }
 
+    // Update Expiry Alerts list in the assistant section
     if (alerts) {
         alerts.innerHTML = "";
 
-        // Find all items nearing expiry (diffDays <= 5) or expired
-        const criticalItems = foods.filter(f => {
+        const criticalItems = (Array.isArray(foods) ? foods : []).filter(f => {
             const status = calculateExpiryStatus(f.expiryDate);
             return status.isValid && (status.diffDays <= 5 || status.isExpired);
         });
@@ -1247,10 +2074,10 @@ function updateAISuggestions(foods, expiringCount) {
                 const status = calculateExpiryStatus(f.expiryDate);
                 const item = document.createElement("div");
                 item.className = "ai-food-item" + (status.isExpired ? " expired-item" : "");
-                
+
                 let alertBadge = "";
                 if (status.isExpired) {
-                    alertBadge = `❌ ${status.statusText} (${escapeHtml(f.expiryDate)})`;
+                    alertBadge = `❌ ${status.statusText} (${escapeHtml(f.expiryDate)}) - Do Not Consume`;
                 } else if (status.diffDays === 0) {
                     alertBadge = `⏰ ${status.statusText}! (0 days remaining)`;
                 } else if (status.diffDays === 1) {
@@ -1267,10 +2094,15 @@ function updateAISuggestions(foods, expiringCount) {
                         </div>
                     </div>
                     ${!status.isExpired ? `
-                        <button class="btn-sm btn-primary" onclick="quickDonateFood('${f._id}', '${escapeHtml(f.name)}', ${f.quantity}, '${escapeHtml(f.unit)}')">
-                            🤝 Donate
-                        </button>
-                    ` : '<span style="font-size: 11px; color: #991b1b; font-weight: 700; padding: 4px;">Expired</span>'}
+                        <div style="display: flex; gap: 6px;">
+                            <button class="btn-sm btn-outline" onclick="viewRecipesForFood('${escapeHtml(f.name)}')">
+                                👨‍🍳 Recipes
+                            </button>
+                            <button class="btn-sm btn-primary" onclick="quickDonateFood('${f._id}', '${escapeHtml(f.name)}', ${f.quantity}, '${escapeHtml(f.unit)}')">
+                                🤝 Donate
+                            </button>
+                        </div>
+                    ` : '<span style="font-size: 11px; color: #991b1b; font-weight: 700; padding: 4px;">Expired (Discard/Compost)</span>'}
                 `;
                 alerts.appendChild(item);
             });
@@ -1280,8 +2112,147 @@ function updateAISuggestions(foods, expiringCount) {
     }
 }
 
+// Focus / Filter recipes for a specific food item
+function viewRecipesForFood(foodName) {
+    const sec = document.getElementById("householdAISection");
+    if (sec) {
+        sec.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    const box = document.getElementById("aiSuggestionBox");
+    if (box) {
+        box.classList.remove("highlight-pulse");
+        void box.offsetWidth;
+        box.classList.add("highlight-pulse");
+    }
+
+    // Try finding matching recipe in cache
+    const lower = (foodName || "").toLowerCase();
+    const match = cachedAIRecipes.find(r =>
+        (r.name && r.name.toLowerCase().includes(lower)) ||
+        (r.matchIngredient && r.matchIngredient.toLowerCase().includes(lower)) ||
+        (r.inventoryIngredients && r.inventoryIngredients.some(i => i.name.toLowerCase().includes(lower)))
+    );
+
+    if (match) {
+        openAiRecipeModal(match.id);
+    }
+}
+
+// Open comprehensive cooking modal with full steps and donation option
+function openAiRecipeModal(recipeId) {
+    const container = document.getElementById("workflowModalContainer");
+    if (!container) return;
+
+    const recipe = cachedAIRecipes.find(r => r.id === recipeId) || cachedAIRecipes[0];
+    if (!recipe) return;
+
+    const inventoryItemsHtml = (recipe.inventoryIngredients || []).map(ing => `
+        <li style="margin-bottom: 4px;">
+            <strong>${escapeHtml(ing.name)}</strong>: ${escapeHtml(ing.quantity)}
+            ${ing.expiryText ? `<span style="background: #fef3c7; color: #b45309; padding: 2px 6px; border-radius: 10px; font-size: 11px; font-weight: 700; margin-left: 6px;">${escapeHtml(ing.expiryText)}</span>` : ''}
+        </li>
+    `).join("");
+
+    const pantryItemsHtml = (recipe.optionalPantryAdditions || []).map(p => `
+        <li style="margin-bottom: 4px; color: #64748b;">${escapeHtml(p)}</li>
+    `).join("");
+
+    const stepsHtml = (recipe.steps || []).map(s => `
+        <li style="margin-bottom: 10px; line-height: 1.6; color: #334155;">${escapeHtml(s)}</li>
+    `).join("");
+
+    const donationMsg = recipe.donationOption ? `
+        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 12px 16px; margin-top: 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 200px;">
+                <h5 style="margin: 0 0 4px; color: #166534; font-size: 14px; font-weight: 700;">🤝 Surplus Redistribution Option</h5>
+                <p style="margin: 0; color: #15803d; font-size: 12px;">${escapeHtml(recipe.donationOption.message)}</p>
+            </div>
+            ${recipe.donationOption.foodName ? `
+                <button class="btn-sm btn-primary" onclick="closeWorkflowModal(); quickDonateFood('${recipe.donationOption.foodId}', '${escapeHtml(recipe.donationOption.foodName)}', '${recipe.donationOption.quantity || 1}', '${escapeHtml(recipe.donationOption.unit || 'portion')}');">
+                    Donate Surplus Now
+                </button>
+            ` : ''}
+        </div>
+    ` : '';
+
+    container.innerHTML = `
+        <div class="custom-modal-backdrop" onclick="if(event.target === this) closeWorkflowModal()">
+            <div class="custom-modal-card" style="max-width: 650px;">
+                <div class="custom-modal-header" style="background: #f0fdf4; border-bottom: 1px solid #dcfce7; padding: 16px 20px;">
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                            <span class="recipe-badge-veg">${recipe.isVegetarian ? '🥦 100% Vegetarian' : '🥗 Fresh'}</span>
+                            <span style="font-size: 12px; color: #15803d; font-weight: 600;">⏱️ Prep: ${escapeHtml(recipe.prepTime)} &bull; Total: ${escapeHtml(recipe.totalTime || recipe.cookTime)}</span>
+                        </div>
+                        <h3 style="margin: 0; color: #173b2a; font-size: 18px;">👨‍🍳 ${escapeHtml(recipe.name)}</h3>
+                    </div>
+                    <button class="custom-modal-close" onclick="closeWorkflowModal()">&times;</button>
+                </div>
+                <div class="custom-modal-body" style="padding: 20px; max-height: 75vh; overflow-y: auto;">
+                    <div style="margin-bottom: 16px;">
+                        <h4 style="margin: 0 0 8px; color: #173b2a; font-size: 14px; font-weight: 700;">🛒 Ingredients From Your Inventory</h4>
+                        <ul style="padding-left: 20px; margin: 0; font-size: 13px; color: #1f2937;">
+                            ${inventoryItemsHtml}
+                        </ul>
+                    </div>
+
+                    ${pantryItemsHtml ? `
+                        <div style="margin-bottom: 16px; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 12px 16px;">
+                            <h4 style="margin: 0 0 6px; color: #475569; font-size: 13px; font-weight: 700;">🧂 Optional Pantry Additions (Use whatever you have)</h4>
+                            <ul style="padding-left: 20px; margin: 0; font-size: 12px;">
+                                ${pantryItemsHtml}
+                            </ul>
+                        </div>
+                    ` : ''}
+
+                    <div style="margin-bottom: 16px;">
+                        <h4 style="margin: 0 0 8px; color: #173b2a; font-size: 14px; font-weight: 700;">👩‍🍳 Step-by-Step Cooking Instructions</h4>
+                        <ol style="padding-left: 20px; margin: 0; font-size: 13px;">
+                            ${stepsHtml}
+                        </ol>
+                    </div>
+
+                    <div class="recipe-benefit-callout" style="margin-bottom: 12px;">
+                        <strong>💚 Health & Wellness Benefit:</strong> ${escapeHtml(recipe.healthBenefit)}
+                    </div>
+
+                    ${recipe.vegetarianAlternative ? `
+                        <div class="recipe-alt-callout" style="margin-bottom: 12px;">
+                            <strong>🌱 Vegetarian / Dietary Alternative:</strong> ${escapeHtml(recipe.vegetarianAlternative)}
+                        </div>
+                    ` : ''}
+
+                    ${donationMsg}
+                </div>
+                <div class="custom-modal-footer" style="padding: 12px 20px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center;">
+                    <button class="btn-sm btn-outline" onclick="closeWorkflowModal()">Close</button>
+                    <button class="btn-sm btn-primary" onclick="closeWorkflowModal(); alert('🎉 Happy Cooking! Enjoy your healthy zero-waste meal.');">
+                        ✅ Cook This Meal
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Interactive assistant shortcut action
 function showAISuggestion() {
-    alert("🤖 ZeroWaste AI Tip:\n\nSurplus fresh produce like tomatoes, greens, and fruits have the highest impact when donated within 48 hours. Value-based donations let you recover harvest/delivery costs while helping NGOs feed local communities!");
+    const sec = document.getElementById("householdAISection");
+    if (sec) {
+        sec.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    const box = document.getElementById("aiSuggestionBox");
+    if (box) {
+        box.classList.remove("highlight-pulse");
+        void box.offsetWidth;
+        box.classList.add("highlight-pulse");
+    }
+
+    if (cachedAIRecipes.length > 0) {
+        openAiRecipeModal(cachedAIRecipes[0].id);
+    }
 }
 
 function showFoodTip() {
@@ -1354,8 +2325,11 @@ function previewSelectedPhoto(fileInput) {
 }
 
 // Publish Food Donation
+let isSubmittingFoodDonation = false;
 async function submitDonation(event) {
     if (event) event.preventDefault();
+    if (isSubmittingFoodDonation) return;
+
     const user = getLoggedInUser();
     if (!user) {
         alert("Please log in first.");
@@ -1389,6 +2363,8 @@ async function submitDonation(event) {
 
     const quantity = document.getElementById("donationQuantity")?.value;
     const unit = document.getElementById("donationUnit")?.value;
+    const donorName = document.getElementById("donationDonorName")?.value.trim() || user.name || "Registered Donor";
+    const donorContact = document.getElementById("donationDonorContact")?.value.trim() || user.contactNumber || "";
     const donorLocation = document.getElementById("donationLocation")?.value.trim() || user.address || "Coimbatore";
     const description = document.getElementById("donationDescription")?.value.trim() || "";
     let photo = document.getElementById("donationPhotoUrl")?.value;
@@ -1406,13 +2382,25 @@ async function submitDonation(event) {
         return;
     }
 
+    const submitBtn = document.getElementById("submitDonationBtn");
+    const originalBtnText = submitBtn ? submitBtn.innerText : "";
+
     try {
+        isSubmittingFoodDonation = true;
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerText = "Publishing Food Donation...";
+        }
+
         const payload = {
             foodId: foodId,
             foodName: foodName,
             quantity: Number(quantity),
             unit: unit,
             category: "Household Surplus",
+            donorName: donorName,
+            donorContact: donorContact,
+            donorAddress: user.address || donorLocation,
             location: donorLocation,
             pickupLocation: donorLocation,
             description: description,
@@ -1448,6 +2436,12 @@ async function submitDonation(event) {
     } catch (e) {
         console.error("Donation creation error:", e);
         alert("❌ Error publishing donation.");
+    } finally {
+        isSubmittingFoodDonation = false;
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerText = originalBtnText || "🤝 Publish Food Donation";
+        }
     }
 }
 
@@ -2062,7 +3056,21 @@ function renderNgoAvailableItems(items, isCrop) {
     const area = document.getElementById("ngoDonationArea");
     if (!area) return;
 
-    if (!items || items.length === 0) {
+    // Deduplicate items so each donation listing is displayed once
+    const uniqueItems = [];
+    const seenIds = new Set();
+    const seenFoodIds = new Set();
+    (items || []).forEach(d => {
+        if (!d || !d._id || seenIds.has(String(d._id))) return;
+        if (!isCrop && d.foodId && !d.foodId.startsWith("custom_")) {
+            if (seenFoodIds.has(d.foodId)) return;
+            seenFoodIds.add(d.foodId);
+        }
+        seenIds.add(String(d._id));
+        uniqueItems.push(d);
+    });
+
+    if (!uniqueItems || uniqueItems.length === 0) {
         area.innerHTML = `
             <div style="text-align: center; padding: 40px; background: white; border-radius: 12px; border: 1px dashed #c0d8cb;">
                 <p style="font-size: 16px; color: #5a7567;">No ${isCrop ? 'crop' : 'food'} donations currently available.</p>
@@ -2073,13 +3081,14 @@ function renderNgoAvailableItems(items, isCrop) {
     }
 
     // Apply active search query if present
-    let filteredItems = items;
+    let filteredItems = uniqueItems;
     if (ngoSearchQuery) {
-        filteredItems = items.filter(d => {
+        filteredItems = uniqueItems.filter(d => {
             const name = (d.cropName || d.foodName || "").toLowerCase();
-            const loc = (d.pickupLocation || d.location || "").toLowerCase();
+            const loc = (d.donorAddress || d.pickupLocation || d.location || "").toLowerCase();
+            const donor = (d.donorName || "").toLowerCase();
             const cat = (d.category || "").toLowerCase();
-            return name.includes(ngoSearchQuery) || loc.includes(ngoSearchQuery) || cat.includes(ngoSearchQuery);
+            return name.includes(ngoSearchQuery) || loc.includes(ngoSearchQuery) || donor.includes(ngoSearchQuery) || cat.includes(ngoSearchQuery);
         });
     }
 
@@ -2104,6 +3113,8 @@ function renderNgoAvailableItems(items, isCrop) {
         const isValueBased = d.donationType === "value_based";
         const valText = isValueBased ? `₹${d.expectedAmount || 0}` : "💚 Free Donation";
         const photo = getItemImage(itemName, d.category, isCrop, d.photo);
+        const donorName = d.donorName || "Registered Donor";
+        const donorAddress = d.donorAddress || d.pickupLocation || d.location || "Coimbatore";
 
         html += `
             <div class="donation-order-card">
@@ -2136,12 +3147,12 @@ function renderNgoAvailableItems(items, isCrop) {
 
                     <div class="info-row">
                         <span>📍</span>
-                        <span><strong>General Pickup:</strong> ${escapeHtml(d.pickupLocation || d.location || 'Coimbatore')}</span>
+                        <span><strong>General Pickup:</strong> ${escapeHtml(donorAddress)}</span>
                     </div>
 
                     <div class="info-row">
                         <span>👤</span>
-                        <span><strong>Donor:</strong> ${escapeHtml(d.donorName || 'Registered Donor')}</span>
+                        <span><strong>Donor:</strong> ${escapeHtml(donorName)}</span>
                     </div>
 
                     <!-- Contact Privacy: Hidden prior to request acceptance -->
@@ -2157,10 +3168,10 @@ function renderNgoAvailableItems(items, isCrop) {
                     ` : ''}
 
                     <div class="card-action-bar">
-                        <a class="btn-sm btn-directions" href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(d.pickupLocation || d.location || 'Coimbatore')}" target="_blank">
+                        <a class="btn-sm btn-directions" href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(donorAddress)}" target="_blank">
                             🚗 View Map
                         </a>
-                        <button class="btn-sm btn-primary" onclick="openRequestModal('${d._id}', ${isCrop}, '${escapeHtml(itemName)}', '${escapeHtml(d.donorName || 'Donor')}', '${valText}', '${escapeHtml(d.pickupLocation || d.location || 'Coimbatore')}', '${d.quantity} ${escapeHtml(d.unit)}')">
+                        <button class="btn-sm btn-primary" onclick="openRequestModal('${d._id}', ${isCrop}, '${escapeHtml(itemName)}', '${escapeHtml(donorName)}', '${valText}', '${escapeHtml(donorAddress)}', '${d.quantity} ${escapeHtml(d.unit)}')">
                             🤝 Request Donation
                         </button>
                     </div>
