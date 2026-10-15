@@ -1584,6 +1584,14 @@ footer p {
     border: 1px solid #b0bec5;
 }
 
+.badge-removed_by_user,
+.badge-removed_by_ngo,
+.badge-not_available {
+    background: #fde8e8;
+    color: #9b1c1c;
+    border: 1px solid #f8b4b4;
+}
+
 /* Payment Status Badges */
 .payment-badge {
     display: inline-flex;

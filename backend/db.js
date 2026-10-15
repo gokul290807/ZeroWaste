@@ -276,6 +276,11 @@ function createLocalModel(collectionKey) {
                 if (!val.$in.includes(item[key])) return false;
             } else if (val && typeof val === "object" && val.$ne !== undefined) {
                 if (item[key] === val.$ne) return false;
+            } else if (val && typeof val === "object" && val.$not) {
+                if (val.$not instanceof RegExp && val.$not.test(item[key] || "")) return false;
+                if (typeof val.$not === "string" && item[key] === val.$not) return false;
+            } else if (val instanceof RegExp) {
+                if (!val.test(item[key] || "")) return false;
             } else if (item[key] !== val) {
                 return false;
             }

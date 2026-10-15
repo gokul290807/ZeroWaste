@@ -81,7 +81,7 @@ const donationSchema = new mongoose.Schema({
         enum: ["not_applicable", "pending", "paid", "failed"],
         default: "not_applicable"
     },
-    // Donation Status: 'available', 'requested', 'accepted', 'collection_scheduled', 'collected', 'completed', 'cancelled'
+    // Donation Status: 'available', 'requested', 'accepted', 'collection_scheduled', 'collected', 'completed', 'cancelled', 'removed_by_user', 'removed_by_ngo', 'not_available'
     donationStatus: {
         type: String,
         enum: [
@@ -91,7 +91,10 @@ const donationSchema = new mongoose.Schema({
             "collection_scheduled",
             "collected",
             "completed",
-            "cancelled"
+            "cancelled",
+            "removed_by_user",
+            "removed_by_ngo",
+            "not_available"
         ],
         default: "available"
     },
@@ -99,6 +102,13 @@ const donationSchema = new mongoose.Schema({
     status: {
         type: String,
         default: "Available"
+    },
+    removedAt: {
+        type: Date
+    },
+    removedBy: {
+        type: String,
+        default: ""
     },
     requestedBy: {
         type: String,

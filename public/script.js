@@ -1341,6 +1341,7 @@ async function deleteFoodItem(id) {
         });
         if (res.ok) {
             await loadFoodInventory();
+            loadMyDonations();
         } else {
             const data = await res.json();
             alert("❌ " + (data.message || "Could not delete food."));
@@ -2470,7 +2471,7 @@ async function loadMyDonations() {
         renderDonorDonations();
 
         const activeDonationsCount = (cachedDonations || []).filter(d =>
-            !["completed", "cancelled"].includes((d.donationStatus || d.status || "").toLowerCase())
+            !["completed", "cancelled", "removed_by_user", "removed_by_ngo", "not_available"].includes((d.donationStatus || d.status || "").toLowerCase())
         ).length;
         const donationCountEl = document.getElementById("donationCount");
         if (donationCountEl) donationCountEl.innerText = activeDonationsCount;
@@ -2716,7 +2717,10 @@ function formatStatusLabel(status) {
         collection_scheduled: "Collection Scheduled",
         collected: "Collected",
         completed: "Completed",
-        cancelled: "Cancelled"
+        cancelled: "Cancelled",
+        removed_by_user: "Removed by User",
+        removed_by_ngo: "Removed by NGO",
+        not_available: "Not Available"
     };
     return map[status] || status.toUpperCase();
 }
@@ -2886,6 +2890,40 @@ async function ngoCancelRequest(id, isCrop) {
         alert("❌ Error cancelling request.");
     }
 }
+
+async function ngoRemoveFoodDonation(id, isCrop = false) {
+    const user = getLoggedInUser();
+    if (!user || user.role !== "ngo") {
+        alert("Unauthorized: Only authorized NGOs can remove donations.");
+        return;
+    }
+
+    if (!confirm(`Are you sure you want to remove this ${isCrop ? 'crop' : 'food'} donation from Available Listings? This will mark it as removed.`)) {
+        return;
+    }
+
+    try {
+        const endpoint = isCrop ? `/api/crop-donations/${id}/remove` : `/api/donations/${id}/remove`;
+        const res = await fetch(`${API_BASE}${endpoint}`, {
+            method: "PUT",
+            headers: authHeaders({ "Content-Type": "application/json" }),
+            body: JSON.stringify({ reason: "Listing removed from available donations by authorized NGO." })
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+            alert(`✅ ${isCrop ? 'Crop' : 'Food'} donation removed successfully.`);
+            renderNgoTabContent();
+            loadNgoStats();
+        } else {
+            alert("❌ " + (data.message || "Failed to remove donation."));
+        }
+    } catch (e) {
+        console.error("NGO remove donation error:", e);
+        alert("❌ Error removing donation.");
+    }
+}
+const ngoRemoveDonation = ngoRemoveFoodDonation;
 
 /* ========================================================
    NGO DASHBOARD & BROWSE
@@ -3059,6 +3097,8 @@ function renderNgoAvailableItems(items, isCrop) {
     const seenFoodIds = new Set();
     (items || []).forEach(d => {
         if (!d || !d._id || seenIds.has(String(d._id))) return;
+        const status = (d.donationStatus || d.status || "").toLowerCase();
+        if (status !== "available" || status.includes("removed") || status.includes("not available")) return;
         if (!isCrop && d.foodId && !d.foodId.startsWith("custom_")) {
             if (seenFoodIds.has(d.foodId)) return;
             seenFoodIds.add(d.foodId);
@@ -3170,6 +3210,9 @@ function renderNgoAvailableItems(items, isCrop) {
                         </a>
                         <button class="btn-sm btn-primary" onclick="openRequestModal('${d._id}', ${isCrop}, '${escapeHtml(itemName)}', '${escapeHtml(donorName)}', '${valText}', '${escapeHtml(donorAddress)}', '${d.quantity} ${escapeHtml(d.unit)}')">
                             🤝 Request Donation
+                        </button>
+                        <button class="btn-sm btn-danger-outline" style="color: #dc2626; border-color: #fca5a5;" onclick="ngoRemoveFoodDonation('${d._id}', ${isCrop})">
+                            🗑️ Remove
                         </button>
                     </div>
                 </div>
@@ -3463,6 +3506,7 @@ async function deleteFarmerCrop(id) {
         });
         if (res.ok) {
             loadFarmerCrops();
+            loadFarmerCropDonations();
         } else {
             const data = await res.json();
             alert("❌ " + (data.message || "Could not delete crop."));

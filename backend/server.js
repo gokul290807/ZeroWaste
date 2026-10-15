@@ -384,8 +384,50 @@ app.delete("/api/foods/:id", authenticateToken, async function (req, res) {
             return res.status(403).json({ message: "Unauthorized: You can only delete your own food items." });
         }
 
+        const foodIdStr = String(food._id || req.params.id);
+        const foodName = (food.name || "").trim();
+        const userEmail = req.user.email.toLowerCase().trim();
+
+        // Synchronize active donations linked to this food item to 'Removed by User'
+        const activeStatuses = ["available", "requested"];
+        const allUserDonations = await Donation.find({
+            $or: [
+                { foodId: foodIdStr },
+                { userEmail: userEmail }
+            ]
+        });
+
+        const activeLinkedDonations = (allUserDonations || []).filter(d => {
+            const matchesId = d.foodId && String(d.foodId) === foodIdStr;
+            const matchesName = d.foodName && foodName && d.foodName.toLowerCase().trim() === foodName.toLowerCase().trim();
+            const matchesUser = (d.userEmail || "").toLowerCase().trim() === userEmail;
+            const isMatch = matchesId || (matchesName && matchesUser);
+            const st = (d.donationStatus || d.status || "").toLowerCase();
+            return isMatch && activeStatuses.includes(st);
+        });
+
+        for (const d of activeLinkedDonations) {
+            d.donationStatus = "removed_by_user";
+            d.status = "Removed by User";
+            d.removedAt = new Date();
+            d.removedBy = userEmail;
+
+            if (!Array.isArray(d.timeline)) d.timeline = [];
+            d.timeline.push({
+                event: "Removed by User",
+                timestamp: new Date(),
+                details: `Linked food inventory item "${foodName}" was deleted by the user. Donation listing marked Not Available.`,
+                actor: d.donorName || req.user.name || "User"
+            });
+
+            await d.save();
+        }
+
         await Food.findByIdAndDelete(req.params.id);
-        res.status(200).json({ message: "Food deleted successfully!" });
+        res.status(200).json({
+            message: "Food deleted successfully!",
+            synchronizedDonations: activeLinkedDonations.length
+        });
     } catch (error) {
         console.error("Food deletion error:", error.message);
         res.status(500).json({ message: "Server error while deleting food." });
@@ -496,8 +538,50 @@ app.delete("/api/crops/:id", authenticateToken, async function (req, res) {
             return res.status(403).json({ message: "Unauthorized: You can only delete your own crops." });
         }
 
+        const cropIdStr = String(crop._id || req.params.id);
+        const cropName = (crop.name || "").trim();
+        const userEmail = req.user.email.toLowerCase().trim();
+
+        // Synchronize active crop donations linked to this crop item to 'Removed by User'
+        const activeStatuses = ["available", "requested"];
+        const allUserCropDonations = await CropDonation.find({
+            $or: [
+                { cropId: cropIdStr },
+                { userEmail: userEmail }
+            ]
+        });
+
+        const activeLinkedCrops = (allUserCropDonations || []).filter(cd => {
+            const matchesId = cd.cropId && String(cd.cropId) === cropIdStr;
+            const matchesName = cd.cropName && cropName && cd.cropName.toLowerCase().trim() === cropName.toLowerCase().trim();
+            const matchesUser = (cd.userEmail || "").toLowerCase().trim() === userEmail;
+            const isMatch = matchesId || (matchesName && matchesUser);
+            const st = (cd.donationStatus || cd.status || "").toLowerCase();
+            return isMatch && activeStatuses.includes(st);
+        });
+
+        for (const cd of activeLinkedCrops) {
+            cd.donationStatus = "removed_by_user";
+            cd.status = "Removed by User";
+            cd.removedAt = new Date();
+            cd.removedBy = userEmail;
+
+            if (!Array.isArray(cd.timeline)) cd.timeline = [];
+            cd.timeline.push({
+                event: "Removed by Farmer",
+                timestamp: new Date(),
+                details: `Linked crop harvest "${cropName}" was deleted by the farmer. Crop donation listing marked Not Available.`,
+                actor: cd.donorName || req.user.name || "Farmer"
+            });
+
+            await cd.save();
+        }
+
         await Crop.findByIdAndDelete(req.params.id);
-        res.status(200).json({ message: "Crop deleted successfully!" });
+        res.status(200).json({
+            message: "Crop deleted successfully!",
+            synchronizedCropDonations: activeLinkedCrops.length
+        });
     } catch (error) {
         console.error("Crop deletion error:", error.message);
         res.status(500).json({ message: "Server error while deleting crop." });
@@ -673,9 +757,9 @@ async function handleRequestDonation(Model, req, res) {
         }
 
         const currentStatus = (donation.donationStatus || donation.status || "").toLowerCase();
-        if (currentStatus !== "available") {
+        if (currentStatus !== "available" || currentStatus.includes("removed") || currentStatus.includes("not available")) {
             return res.status(400).json({
-                message: `Cannot request donation. Current status is already '${donation.donationStatus || donation.status}'.`
+                message: `Cannot request donation: This donation has been removed or is no longer available.`
             });
         }
 
@@ -737,9 +821,9 @@ async function handleAcceptDonation(Model, req, res) {
         }
 
         const currentStatus = (donation.donationStatus || donation.status || "").toLowerCase();
-        if (currentStatus !== "requested") {
+        if (currentStatus !== "requested" || currentStatus.includes("removed") || currentStatus.includes("not available")) {
             return res.status(400).json({
-                message: `Donation must be in 'requested' status to accept. Currently '${donation.donationStatus || donation.status}'.`
+                message: `Cannot accept donation: Listing has been removed or is no longer in requested status.`
             });
         }
 
@@ -1138,6 +1222,60 @@ async function handleCancelDonation(Model, req, res) {
     }
 }
 
+/**
+ * Handle NGO Removal transition (AVAILABLE / REQUESTED -> REMOVED_BY_NGO)
+ * Strictly restricted to authorized NGO accounts!
+ * Keeps donation record in DB for history without deleting it.
+ */
+async function handleNgoRemoveDonation(Model, req, res) {
+    try {
+        if (!req.user || req.user.role !== "ngo") {
+            return res.status(403).json({
+                message: "Unauthorized: Only authorized NGOs can remove donation listings."
+            });
+        }
+
+        const donation = await Model.findById(req.params.id);
+        if (!donation) {
+            return res.status(404).json({ message: "Donation not found." });
+        }
+
+        const currentStatus = (donation.donationStatus || donation.status || "").toLowerCase();
+        if (currentStatus === "completed" || currentStatus === "collected") {
+            return res.status(400).json({
+                message: "Cannot remove a donation that has already been collected or completed."
+            });
+        }
+
+        const ngoUser = await User.findOne({ email: req.user.email });
+        const ngoName = ngoUser ? ngoUser.name : (req.user.name || "NGO");
+        const reason = req.body && req.body.reason ? req.body.reason : "Removed from available listings by authorized NGO.";
+
+        donation.donationStatus = "removed_by_ngo";
+        donation.status = "Removed by NGO";
+        donation.removedAt = new Date();
+        donation.removedBy = req.user.email;
+
+        if (!Array.isArray(donation.timeline)) donation.timeline = [];
+        donation.timeline.push({
+            event: "Removed by NGO",
+            timestamp: new Date(),
+            details: reason,
+            actor: ngoName
+        });
+
+        await donation.save();
+
+        res.status(200).json({
+            message: "Donation listing removed successfully.",
+            donation: sanitizeDonationForViewer(donation, req.user)
+        });
+    } catch (error) {
+        console.error("NGO donation removal error:", error.message);
+        res.status(500).json({ message: "Server error while removing donation." });
+    }
+}
+
 /* ========================================================
    FOOD DONATION ROUTE DEFINITIONS
 ======================================================== */
@@ -1287,6 +1425,8 @@ app.put("/api/donations/:id/collect", authenticateToken, (req, res) => handleCol
 app.put("/api/donations/:id/payment", authenticateToken, (req, res) => handlePaymentDonation(Donation, req, res));
 app.put("/api/donations/:id/complete", authenticateToken, (req, res) => handleCompleteDonation(Donation, req, res));
 app.put("/api/donations/:id/cancel", authenticateToken, (req, res) => handleCancelDonation(Donation, req, res));
+app.put("/api/donations/:id/remove", authenticateToken, (req, res) => handleNgoRemoveDonation(Donation, req, res));
+app.delete("/api/donations/:id", authenticateToken, (req, res) => handleNgoRemoveDonation(Donation, req, res));
 
 /* ========================================================
    CROP DONATION ROUTE DEFINITIONS
@@ -1380,6 +1520,8 @@ app.put("/api/crop-donations/:id/collect", authenticateToken, (req, res) => hand
 app.put("/api/crop-donations/:id/payment", authenticateToken, (req, res) => handlePaymentDonation(CropDonation, req, res));
 app.put("/api/crop-donations/:id/complete", authenticateToken, (req, res) => handleCompleteDonation(CropDonation, req, res));
 app.put("/api/crop-donations/:id/cancel", authenticateToken, (req, res) => handleCancelDonation(CropDonation, req, res));
+app.put("/api/crop-donations/:id/remove", authenticateToken, (req, res) => handleNgoRemoveDonation(CropDonation, req, res));
+app.delete("/api/crop-donations/:id", authenticateToken, (req, res) => handleNgoRemoveDonation(CropDonation, req, res));
 
 /* ========================================================
    AI RECIPE & NUTRITION SUGGESTION APIS
