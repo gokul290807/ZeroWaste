@@ -388,62 +388,7 @@ function synthesizeDynamicRecipe(foodItem) {
  */
 function generateRecipesForInventory(foods, options = {}) {
     if (!Array.isArray(foods) || foods.length === 0) {
-        // Return 2 starter zero-waste staple recipes when inventory is empty
-        return [
-            {
-                id: "starter_golden_milk",
-                name: "Golden Turmeric Spiced Milk (Zero-Waste Starter)",
-                prepTime: "2 mins",
-                cookTime: "5 mins",
-                totalTime: "7 mins",
-                isVegetarian: true,
-                dietaryTags: ["🥦 100% Vegetarian", "🌱 Immunity Booster"],
-                matchIngredient: "milk",
-                defaultQty: "1 glass (250 ml)",
-                inventoryIngredients: [
-                    { name: "Fresh Milk (or plant-based milk)", quantity: "250 ml", isExpiringSoon: false, expiryText: "Pantry staple" }
-                ],
-                optionalPantryAdditions: ["Pinch of turmeric powder", "Pinch of black pepper", "1 tsp honey or jaggery"],
-                steps: [
-                    "Warm milk gently in a saucepan over medium heat.",
-                    "Whisk in turmeric and a pinch of black pepper.",
-                    "Pour into your favorite mug, sweeten with honey, and enjoy!"
-                ],
-                healthBenefit: "Soothes inflammation, boosts immunity, and promotes restorative natural sleep.",
-                vegetarianAlternative: "Vegan: Use almond, oat, or soy milk.",
-                donationOption: {
-                    message: "Log your household surplus in ZeroWaste to unlock automated expiry alerts and community sharing.",
-                    foodId: "",
-                    foodName: "Surplus"
-                }
-            },
-            {
-                id: "starter_tomato_rasam",
-                name: "Comforting Fresh Tomato Rasam Broth",
-                prepTime: "4 mins",
-                cookTime: "10 mins",
-                totalTime: "14 mins",
-                isVegetarian: true,
-                dietaryTags: ["🥦 100% Vegetarian", "🥣 Gut Cleansing"],
-                matchIngredient: "tomato",
-                defaultQty: "2 ripe tomatoes",
-                inventoryIngredients: [
-                    { name: "Ripe Tomatoes", quantity: "2 pieces", isExpiringSoon: false, expiryText: "Pantry staple" }
-                ],
-                optionalPantryAdditions: ["2 cups water", "1/2 tsp cumin seeds", "Crushed garlic & salt to taste"],
-                steps: [
-                    "Mash ripe tomatoes in 2 cups of water with salt and crushed garlic.",
-                    "Simmer for 7 minutes, temper with cumin seeds in 1/2 tsp oil, and enjoy warm!"
-                ],
-                healthBenefit: "High in Lycopene and Vitamin C; flushes toxins and supports gut immunity.",
-                vegetarianAlternative: "100% vegan and gluten-free.",
-                donationOption: {
-                    message: "Log your household surplus in ZeroWaste to unlock automated expiry alerts and community sharing.",
-                    foodId: "",
-                    foodName: "Surplus"
-                }
-            }
-        ];
+        return [];
     }
 
     // 1. Filter out expired foods: NEVER recommend expired food for cooking or consumption!

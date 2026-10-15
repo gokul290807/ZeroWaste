@@ -135,14 +135,25 @@ const usesUrgentItem = firstRecipe.inventoryIngredients.some(i => i.isExpiringSo
 assert.strictEqual(usesUrgentItem, true, "First recipe must prioritize items expiring soon");
 console.log(`  ✅ PASS: Recipes correctly prioritize items expiring soon (First recipe uses: ${firstRecipe.inventoryIngredients.map(i => i.name).join(", ")})`);
 
-// 2.4 Empty inventory handling: Sensible staple recipes without error or donation-only output
+// 2.4 Empty inventory handling: Clears old recipes and returns empty array
 const emptyInventoryRecipes = aiRecipeService.generateRecipesForInventory([]);
-assert(Array.isArray(emptyInventoryRecipes) && emptyInventoryRecipes.length >= 2, "Empty inventory must return sensible staple recipes");
-assert(emptyInventoryRecipes[0].steps.length > 0, "Staple recipes must have step-by-step instructions");
-assert(emptyInventoryRecipes[0].healthBenefit, "Staple recipes must have health benefit");
-console.log(`  ✅ PASS: Empty inventory returns ${emptyInventoryRecipes.length} sensible staple recipes rather than error or donation-only output`);
+assert(Array.isArray(emptyInventoryRecipes) && emptyInventoryRecipes.length === 0, "Empty inventory must return 0 recipes so stale suggestions never persist");
+console.log("  ✅ PASS: Empty inventory returns 0 recipes, ensuring stale recipe suggestions are cleared");
 
-// 2.5 Unique / custom ingredients handling
+// 2.5 Food deletion handling: Deleting food items updates recipe suggestions to use only current saved inventory
+const remainingAfterDelete = mockInventory.filter(f => f.name !== "Fresh Milk"); // Milk deleted
+const recipesAfterMilkDeleted = aiRecipeService.generateRecipesForInventory(remainingAfterDelete);
+const stillUsesMilk = recipesAfterMilkDeleted.some(r => r.inventoryIngredients.some(i => i.name.toLowerCase().includes("milk")));
+assert.strictEqual(stillUsesMilk, false, "After deleting Milk, recipes must NEVER suggest milk recipes or use milk");
+console.log("  ✅ PASS: After deleting an item, recipe suggestions regenerate and strictly use only remaining saved inventory");
+
+// 2.6 All items deleted: Recipes array must be completely empty
+const allDeletedInventory = [];
+const recipesAfterAllDeleted = aiRecipeService.generateRecipesForInventory(allDeletedInventory);
+assert.strictEqual(recipesAfterAllDeleted.length, 0, "When all food is deleted, recipes array must be empty");
+console.log("  ✅ PASS: When all food items are deleted, recipe suggestions array is 0");
+
+// 2.7 Unique / custom ingredients handling
 const customInventory = [
     { _id: "cust_1", name: "Zucchini Squash", quantity: 3, unit: "pieces", expiryDate: "2026-10-16" }
 ];

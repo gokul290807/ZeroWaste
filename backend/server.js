@@ -1388,13 +1388,12 @@ app.put("/api/crop-donations/:id/cancel", authenticateToken, (req, res) => handl
 // Generate healthy recipes from inventory (Protected / Optional Auth)
 app.post("/api/ai/recipes", optionalAuth, async function (req, res) {
     try {
-        let foods = req.body.foods;
-        if (!Array.isArray(foods)) {
-            if (req.user && req.user.email) {
-                foods = await Food.find({ userEmail: req.user.email });
-            } else {
-                foods = [];
-            }
+        let foods = [];
+        if (req.user && req.user.email) {
+            // Strictly query the authenticated user's current saved inventory from MongoDB
+            foods = await Food.find({ userEmail: req.user.email });
+        } else if (Array.isArray(req.body.foods)) {
+            foods = req.body.foods;
         }
 
         const recipes = aiRecipeService.generateRecipesForInventory(foods);

@@ -642,6 +642,8 @@ function logoutUser() {
     localStorage.removeItem("zeroWasteUser");
     localStorage.removeItem("ecoMindUser");
     localStorage.removeItem("zeroWasteToken");
+    cachedFoods = [];
+    cachedAIRecipes = [];
     const notifContainer = document.getElementById("expiryNotificationContainer");
     if (notifContainer) {
         notifContainer.style.display = "none";
@@ -663,6 +665,10 @@ document.addEventListener("DOMContentLoaded", function () {
 async function initDashboard() {
     let user = getLoggedInUser();
     let token = getAuthToken();
+
+    // Reset caches on dashboard initialization to ensure recipes and foods are fresh
+    cachedFoods = [];
+    cachedAIRecipes = [];
 
     // Guard: Require valid user session to access dashboard
     if (!user || !token) {
@@ -1038,8 +1044,10 @@ async function loadFoodInventory() {
 
         if (!Array.isArray(foods) || foods.length === 0) {
             if (emptyEl) emptyEl.style.display = "block";
+            cachedFoods = [];
+            cachedAIRecipes = [];
             updateFoodDropdown([]);
-            updateAISuggestions([], 0);
+            await updateAISuggestions([], 0);
             renderExpiryNotifications([]);
             return;
         }
@@ -1094,7 +1102,7 @@ async function loadFoodInventory() {
         if (expiryCountEl) expiryCountEl.innerText = expiringCount;
 
         updateFoodDropdown(foods);
-        updateAISuggestions(foods, expiringCount);
+        await updateAISuggestions(foods, expiringCount);
         renderExpiryNotifications(foods);
     } catch (e) {
         console.error("Error loading inventory:", e);
@@ -1315,7 +1323,7 @@ async function saveFoodEdit(event, id) {
         if (res.ok) {
             closeWorkflowModal();
             alert("✅ Food item updated successfully!");
-            loadFoodInventory();
+            await loadFoodInventory();
         } else {
             alert("❌ " + (data.message || "Failed to update food."));
         }
@@ -1332,13 +1340,14 @@ async function deleteFoodItem(id) {
             headers: authHeaders()
         });
         if (res.ok) {
-            loadFoodInventory();
+            await loadFoodInventory();
         } else {
             const data = await res.json();
             alert("❌ " + (data.message || "Could not delete food."));
         }
     } catch (e) {
-        console.error(e);
+        console.error("Error deleting food item:", e);
+        alert("❌ Error deleting food item.");
     }
 }
 
@@ -1789,59 +1798,7 @@ function synthesizeDynamicClientRecipe(foodItem) {
 // Generate client-side AI recipes from inventory
 function generateClientAIRecipes(validFoods) {
     if (!validFoods || validFoods.length === 0) {
-        return [
-            {
-                id: "starter_golden_milk",
-                name: "Golden Turmeric Spiced Milk (Zero-Waste Starter)",
-                prepTime: "2 mins",
-                cookTime: "5 mins",
-                totalTime: "7 mins",
-                isVegetarian: true,
-                dietaryTags: ["🥦 100% Vegetarian", "🌱 Immunity Booster"],
-                matchIngredient: "Milk",
-                inventoryIngredients: [
-                    { name: "Fresh Milk (or plant-based milk)", quantity: "250 ml", isExpiringSoon: false, expiryText: "Pantry staple" }
-                ],
-                optionalPantryAdditions: ["Pinch of turmeric powder", "Pinch of black pepper", "1 tsp honey or jaggery"],
-                steps: [
-                    "Warm milk gently in a saucepan over medium heat.",
-                    "Whisk in turmeric and a pinch of black pepper.",
-                    "Pour into your favorite mug, sweeten with honey, and enjoy!"
-                ],
-                healthBenefit: "Soothes inflammation, boosts immunity, and promotes restorative natural sleep.",
-                vegetarianAlternative: "Vegan: Use almond, oat, or soy milk.",
-                donationOption: {
-                    message: "Log your household surplus in ZeroWaste to unlock automated expiry alerts and community sharing.",
-                    foodId: "",
-                    foodName: "Surplus"
-                }
-            },
-            {
-                id: "starter_tomato_rasam",
-                name: "Comforting Fresh Tomato Rasam Broth",
-                prepTime: "4 mins",
-                cookTime: "10 mins",
-                totalTime: "14 mins",
-                isVegetarian: true,
-                dietaryTags: ["🥦 100% Vegetarian", "🥣 Gut Cleansing"],
-                matchIngredient: "Tomatoes",
-                inventoryIngredients: [
-                    { name: "Ripe Tomatoes", quantity: "2 pieces", isExpiringSoon: false, expiryText: "Pantry staple" }
-                ],
-                optionalPantryAdditions: ["2 cups water", "1/2 tsp cumin seeds", "Crushed garlic & salt to taste"],
-                steps: [
-                    "Mash ripe tomatoes in 2 cups of water with salt and crushed garlic.",
-                    "Simmer for 7 minutes, temper with cumin seeds in 1/2 tsp oil, and enjoy warm!"
-                ],
-                healthBenefit: "High in Lycopene and Vitamin C; flushes toxins and supports gut immunity.",
-                vegetarianAlternative: "100% vegan and gluten-free.",
-                donationOption: {
-                    message: "Log your household surplus in ZeroWaste to unlock automated expiry alerts and community sharing.",
-                    foodId: "",
-                    foodName: "Surplus"
-                }
-            }
-        ];
+        return [];
     }
 
     // Sort valid foods by urgency: expiring today (0) or tomorrow (1) first
@@ -1927,36 +1884,71 @@ async function updateAISuggestions(foods, expiringCount) {
 
     if (!box) return;
 
+    // Immediately clear cached recipes so stale suggestions never persist
+    cachedAIRecipes = [];
+
+    const user = getLoggedInUser();
+
     // Strictly filter out expired foods: NEVER recommend expired food for cooking or consumption!
     const validFoods = (Array.isArray(foods) ? foods : []).filter(f => {
         const status = calculateExpiryStatus(f.expiryDate);
         return status.isValid && !status.isExpired;
     });
 
+    // When the inventory is empty, clear old recipe suggestions and show the empty message
+    if (validFoods.length === 0) {
+        cachedAIRecipes = [];
+        box.innerHTML = `
+            <div class="empty-ai-suggestion-box" style="text-align: center; padding: 28px 16px; color: #436251; background: #f0fdf4; border: 1px dashed #bbf7d0; border-radius: 12px; margin: 10px 0;">
+                <div style="font-size: 36px; margin-bottom: 8px;">🥗</div>
+                <h3 style="margin: 0 0 6px; color: #173b2a; font-size: 16px; font-weight: 700;">Your inventory is empty</h3>
+                <p style="margin: 0; color: #5a7567; font-size: 13px;">Your inventory is empty. Add food items to get recipe suggestions.</p>
+            </div>
+        `;
+
+        if (alerts) {
+            alerts.innerHTML = '<p style="font-size: 13px; color: #5a7567; margin: 5px 0;">No items expiring. Your inventory is empty.</p>';
+        }
+        return;
+    }
+
     let recipes = [];
 
     try {
-        // Attempt to fetch from backend AI Recipe service
-        const res = await fetch(`${API_BASE}/api/ai/recipes`, {
-            method: "POST",
+        // Fetch recipes strictly for the currently logged-in user's inventory
+        const endpoint = user && user.email
+            ? `${API_BASE}/api/ai/recipes/${encodeURIComponent(user.email)}`
+            : `${API_BASE}/api/ai/recipes`;
+
+        const res = await fetch(endpoint, {
+            method: user && user.email ? "GET" : "POST",
             headers: authHeaders({ "Content-Type": "application/json" }),
-            body: JSON.stringify({ foods: validFoods })
+            body: user && user.email ? undefined : JSON.stringify({ foods: validFoods })
         });
 
         if (res.ok) {
             const data = await res.json();
-            if (Array.isArray(data.recipes) && data.recipes.length > 0) {
+            if (Array.isArray(data.recipes)) {
                 recipes = data.recipes;
             }
+        } else {
+            console.warn(`AI Recipe endpoint returned HTTP ${res.status}`);
         }
     } catch (e) {
-        console.warn("Could not fetch remote recipes, synthesizing local intelligent suggestions:", e);
+        console.warn("Could not fetch remote recipes, synthesizing suggestions from current inventory:", e);
     }
 
-    // Fallback to client-side engine if remote API returned empty, failed, or without external API key
+    // Handle API failures without displaying outdated recipes: synthesize ONLY from current validFoods
     if (!recipes || recipes.length === 0) {
         recipes = generateClientAIRecipes(validFoods);
     }
+
+    // Strict validation: Ensure suggestions use only the user's current validFoods
+    recipes = (Array.isArray(recipes) ? recipes : []).filter(r => {
+        return r.inventoryIngredients && r.inventoryIngredients.some(ing => {
+            return validFoods.some(vf => (vf.name || "").toLowerCase().trim() === (ing.name || "").toLowerCase().trim());
+        });
+    });
 
     cachedAIRecipes = recipes;
 
@@ -2055,8 +2047,11 @@ async function updateAISuggestions(foods, expiringCount) {
         `;
     } else {
         box.innerHTML = `
-            <h3>🤖 Inventory Empty</h3>
-            <p>Add household food items above to unlock automated shelf-life tracking, healthy recipe ideas, and community sharing.</p>
+            <div class="empty-ai-suggestion-box" style="text-align: center; padding: 28px 16px; color: #436251; background: #f0fdf4; border: 1px dashed #bbf7d0; border-radius: 12px; margin: 10px 0;">
+                <div style="font-size: 36px; margin-bottom: 8px;">🥗</div>
+                <h3 style="margin: 0 0 6px; color: #173b2a; font-size: 16px; font-weight: 700;">Your inventory is empty</h3>
+                <p style="margin: 0; color: #5a7567; font-size: 13px;">Your inventory is empty. Add food items to get recipe suggestions.</p>
+            </div>
         `;
     }
 
@@ -2250,8 +2245,10 @@ function showAISuggestion() {
         box.classList.add("highlight-pulse");
     }
 
-    if (cachedAIRecipes.length > 0) {
+    if (cachedAIRecipes && cachedAIRecipes.length > 0) {
         openAiRecipeModal(cachedAIRecipes[0].id);
+    } else {
+        alert("🥗 Your inventory is empty. Add food items to get recipe suggestions.");
     }
 }
 
