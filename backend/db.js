@@ -1,7 +1,14 @@
 const fs = require("fs");
 const path = require("path");
+const dns = require("dns");
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
+
+try {
+    dns.setServers(["8.8.8.8", "1.1.1.1"]);
+} catch (e) {
+    // Continue with system DNS
+}
 
 const MongooseUser = require("./models/User");
 const MongooseFood = require("./models/Food");
@@ -367,16 +374,61 @@ const LocalCropDonation = createLocalModel("cropDonations");
 function createDynamicModelProxy(mongooseModel, localModel) {
     return new Proxy(mongooseModel, {
         get(target, prop) {
-            if (isUsingLocalDb) {
+            if (isUsingLocalDb || mongoose.connection.readyState !== 1) {
                 return localModel[prop];
             }
-            return target[prop];
+            const orig = target[prop];
+            if (typeof orig === "function") {
+                return function (...args) {
+                    try {
+                        const result = orig.apply(target, args);
+                        if (result && typeof result.then === "function") {
+                            return result.catch(err => {
+                                if (
+                                    err.name === "MongooseServerSelectionError" ||
+                                    err.name === "MongoNetworkError" ||
+                                    (err.message && (err.message.includes("SSL") || err.message.includes("whitelist") || err.message.includes("timed out")))
+                                ) {
+                                    console.log(`⚠️ Atlas query failure (${err.message.slice(0, 50)}...). Falling back to local store.`);
+                                    isUsingLocalDb = true;
+                                    return localModel[prop](...args);
+                                }
+                                throw err;
+                            });
+                        }
+                        return result;
+                    } catch (syncErr) {
+                        isUsingLocalDb = true;
+                        return localModel[prop](...args);
+                    }
+                };
+            }
+            return orig;
         },
         construct(target, args) {
-            if (isUsingLocalDb) {
+            if (isUsingLocalDb || mongoose.connection.readyState !== 1) {
                 return new localModel(...args);
             }
-            return new target(...args);
+            const instance = new target(...args);
+            const origSave = instance.save;
+            instance.save = async function (...saveArgs) {
+                try {
+                    return await origSave.apply(this, saveArgs);
+                } catch (saveErr) {
+                    if (
+                        saveErr.name === "MongooseServerSelectionError" ||
+                        saveErr.name === "MongoNetworkError" ||
+                        (saveErr.message && (saveErr.message.includes("SSL") || saveErr.message.includes("whitelist") || saveErr.message.includes("timed out")))
+                    ) {
+                        console.log(`⚠️ Atlas save failure (${saveErr.message.slice(0, 50)}...). Falling back to local store.`);
+                        isUsingLocalDb = true;
+                        const localInst = new localModel(this.toObject ? this.toObject() : this);
+                        return await localInst.save();
+                    }
+                    throw saveErr;
+                }
+            };
+            return instance;
         }
     });
 }
@@ -386,6 +438,23 @@ const Food = createDynamicModelProxy(MongooseFood, LocalFood);
 const Crop = createDynamicModelProxy(MongooseCrop, LocalCrop);
 const Donation = createDynamicModelProxy(MongooseDonation, LocalDonation);
 const CropDonation = createDynamicModelProxy(MongooseCropDonation, LocalCropDonation);
+
+// Connection event monitoring
+mongoose.connection.on("error", (err) => {
+    console.warn("⚠️ Mongoose connection error:", err.message);
+    if (!isUsingLocalDb) {
+        console.log("🚀 Switching to Local High-Reliability Storage Engine.");
+        isUsingLocalDb = true;
+    }
+});
+
+mongoose.connection.on("disconnected", () => {
+    console.warn("⚠️ Mongoose disconnected.");
+    if (!isUsingLocalDb) {
+        console.log("🚀 Switching to Local High-Reliability Storage Engine.");
+        isUsingLocalDb = true;
+    }
+});
 
 async function initDatabase() {
     loadLocalStore();
@@ -405,10 +474,13 @@ async function initDatabase() {
         await mongoose.connect(uri, {
             serverSelectionTimeoutMS: 5000
         });
-        console.log("✅ MongoDB Atlas connected successfully!");
+        if (mongoose.connection && mongoose.connection.db) {
+            await mongoose.connection.db.admin().ping();
+        }
+        console.log("✅ MongoDB Atlas connected and verified successfully!");
         isUsingLocalDb = false;
     } catch (err) {
-        console.log("⚠️ MongoDB Atlas connection unavailable (IP whitelist or network).");
+        console.log("⚠️ MongoDB Atlas connection unavailable (IP whitelist or network):", err.message);
         console.log("🚀 ACTIVATING LOCAL HIGH-RELIABILITY STORAGE ENGINE.");
         isUsingLocalDb = true;
     }
