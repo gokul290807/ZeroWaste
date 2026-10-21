@@ -123,7 +123,7 @@ button:hover {
     color: #2e8b57;
 }
 
-.hero-content > p:not(.small-title) {
+.hero-content>p:not(.small-title) {
     color: #607568;
 
     font-size: 18px;
@@ -400,6 +400,7 @@ footer p {
     }
 
 }
+
 /* =========================
    LOGIN PAGE
 ========================= */
@@ -558,6 +559,7 @@ footer p {
 
     font-size: 14px;
 }
+
 .login-btn {
     display: inline-block;
 
@@ -579,6 +581,7 @@ footer p {
 
     color: white;
 }
+
 .login-card select {
     width: 100%;
     padding: 14px;
@@ -593,6 +596,7 @@ footer p {
 .login-card select:focus {
     border-color: #2e8b57;
 }
+
 .dashboard-page {
     min-height: 100vh;
     background: #f6faf7;
@@ -605,7 +609,7 @@ footer p {
     margin-bottom: 10px;
 }
 
-.dashboard-page > p {
+.dashboard-page>p {
     color: #718078;
     margin-bottom: 40px;
 }
@@ -633,6 +637,7 @@ footer p {
 .dashboard-card p {
     color: #718078;
 }
+
 /* =========================
    DASHBOARD PAGE
 ========================= */
@@ -738,7 +743,7 @@ footer p {
     border: 1px solid #e8f0eb;
 
     transition: transform 0.2s ease,
-                box-shadow 0.2s ease;
+        box-shadow 0.2s ease;
 
 }
 
@@ -808,7 +813,7 @@ footer p {
     border: 1px solid #e8f0eb;
 
     transition: transform 0.2s ease,
-                box-shadow 0.2s ease;
+        box-shadow 0.2s ease;
 
 }
 
@@ -845,6 +850,7 @@ footer p {
     margin-bottom: 20px;
 
 }
+
 /* Dashboard Action Button */
 
 .dashboard-action {
@@ -936,6 +942,7 @@ footer p {
     }
 
 }
+
 /* =========================
    FOOD INVENTORY
 ========================= */
@@ -1143,6 +1150,7 @@ footer p {
     }
 
 }
+
 /* =========================
    AI ASSISTANT
 ========================= */
@@ -1261,6 +1269,7 @@ footer p {
         opacity: 0;
         transform: translateY(-8px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -1331,6 +1340,7 @@ footer p {
     border-radius: 8px;
     color: #267344;
 }
+
 /* =========================
    AI FOOD EXPIRY LIST
 ========================= */
@@ -1384,6 +1394,7 @@ footer p {
     }
 
 }
+
 /* ============================= */
 /* FARMER CROP FORM */
 /* ============================= */
@@ -1837,6 +1848,7 @@ footer p {
     background: #2e8b57;
     color: white;
 }
+
 .btn-primary:hover {
     background: #246d45;
 }
@@ -1845,6 +1857,7 @@ footer p {
     background: #1976d2;
     color: white;
 }
+
 .btn-blue:hover {
     background: #115293;
 }
@@ -1853,6 +1866,7 @@ footer p {
     background: #f59e0b;
     color: white;
 }
+
 .btn-amber:hover {
     background: #d97706;
 }
@@ -1862,6 +1876,7 @@ footer p {
     color: #2e8b57;
     border: 1px solid #2e8b57;
 }
+
 .btn-outline:hover {
     background: #f0f8f4;
 }
@@ -1871,6 +1886,7 @@ footer p {
     color: #d32f2f;
     border: 1px solid #d32f2f;
 }
+
 .btn-danger-outline:hover {
     background: #ffebee;
 }
@@ -1880,6 +1896,7 @@ footer p {
     color: white;
     font-weight: 600;
 }
+
 .btn-directions:hover {
     background: #0b8043;
 }
@@ -2229,10 +2246,12 @@ footer p {
     body * {
         visibility: hidden;
     }
+
     .custom-modal-backdrop,
     .custom-modal-backdrop * {
         visibility: visible;
     }
+
     .custom-modal-backdrop {
         position: absolute;
         left: 0;
@@ -2241,18 +2260,22 @@ footer p {
         background: white !important;
         padding: 0 !important;
     }
+
     .custom-modal-card {
         box-shadow: none !important;
         max-width: 100% !important;
         width: 100% !important;
     }
+
     /* Only hide interactive modal header and action buttons during paper print */
     .custom-modal-header {
         display: none !important;
     }
+
     .custom-modal-footer {
         display: none !important;
     }
+
     .receipt-container {
         border: 2px solid #000 !important;
     }
@@ -2260,13 +2283,25 @@ footer p {
 
 /* Animations */
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 @keyframes slideUp {
-    from { transform: translateY(20px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
 }
 
 /* ========================================================
@@ -2442,10 +2477,12 @@ footer p {
         box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.6);
         transform: scale(1);
     }
+
     50% {
         box-shadow: 0 0 0 12px rgba(245, 158, 11, 0);
         transform: scale(1.01);
     }
+
     100% {
         box-shadow: 0 0 0 0 rgba(245, 158, 11, 0);
         transform: scale(1);
@@ -2458,3 +2495,912 @@ footer p {
 
 
 
+/* =========================
+   ZERO WASTE HOMEPAGE REDESIGN
+   Safe visual improvements
+========================= */
+
+body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    line-height: 1.6;
+    background: #f7faf7;
+    color: #173b2a;
+}
+
+header {
+    min-height: 76px;
+    height: auto;
+    padding: 16px 7%;
+    gap: 24px;
+    box-shadow: 0 4px 20px rgba(23, 59, 42, 0.05);
+}
+
+.logo {
+    color: #176b3a;
+    font-size: 25px;
+    letter-spacing: -0.5px;
+    white-space: nowrap;
+}
+
+nav a {
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+nav a:hover {
+    color: #16803d;
+}
+
+.hero {
+    min-height: 620px;
+    padding: 90px 8%;
+    gap: 70px;
+    background:
+        radial-gradient(ellipse at 85% 20%, #e1f5e6 0%, transparent 40%),
+        linear-gradient(135deg, #f7fbf7, #edf7ef);
+}
+
+.hero-content {
+    max-width: 680px;
+}
+
+.small-title {
+    display: inline-block;
+    padding: 8px 14px;
+    border-radius: 30px;
+    background: #e2f4e6;
+    color: #18733c;
+    font-size: 12px;
+    letter-spacing: 1.5px;
+}
+
+.hero h1 {
+    font-size: clamp(38px, 5vw, 64px);
+    line-height: 1.12;
+    letter-spacing: -1.8px;
+    margin-bottom: 24px;
+}
+
+.hero h1 span,
+.section h2 span,
+.features-section h2 span {
+    color: #16803d;
+}
+
+.hero-content>p:not(.small-title) {
+    color: #617467;
+    font-size: 17px;
+    line-height: 1.85;
+}
+
+.hero-buttons {
+    flex-wrap: wrap;
+    gap: 14px;
+}
+
+.hero-buttons button,
+.contact-section button {
+    min-height: 48px;
+    border-radius: 10px;
+    font-weight: 600;
+    box-shadow: 0 5px 14px rgba(22, 128, 61, 0.12);
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.hero-buttons button:hover,
+.contact-section button:hover {
+    transform: translateY(-2px);
+}
+
+.secondary-btn {
+    box-shadow: none !important;
+}
+
+.hero-card {
+    flex-shrink: 0;
+    width: min(350px, 100%);
+    padding: 42px 34px;
+    border: 1px solid #e3eee5;
+    border-radius: 24px;
+    box-shadow: 0 24px 60px rgba(23, 59, 42, 0.10);
+}
+
+.food-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100px;
+    height: 100px;
+    margin-bottom: 22px;
+    border-radius: 28px;
+    background: #e8f6eb;
+}
+
+.hero-card h2 {
+    color: #173b2a;
+    font-size: 27px;
+}
+
+.save-number {
+    border: 1px solid #d9eddd;
+    background: #f0f9f1;
+    border-radius: 14px;
+}
+
+.section {
+    padding: 95px 8%;
+}
+
+.section-title {
+    color: #16803d;
+    letter-spacing: 1.6px;
+}
+
+.section h2,
+.features-section h2 {
+    font-size: clamp(30px, 4vw, 43px);
+    line-height: 1.25;
+    letter-spacing: -0.8px;
+}
+
+.section-description {
+    font-size: 17px;
+    line-height: 1.9;
+}
+
+.features-section {
+    padding: 95px 8%;
+    background: #f7faf7;
+}
+
+.feature-container {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 22px;
+    margin-top: 42px;
+}
+
+.feature-card {
+    padding: 32px 24px;
+    border: 1px solid #e3ece5;
+    border-radius: 18px;
+    box-shadow: 0 5px 20px rgba(23, 59, 42, 0.035);
+}
+
+.feature-card:hover {
+    border-color: #c7e5ce;
+    box-shadow: 0 16px 35px rgba(23, 59, 42, 0.09);
+    transform: translateY(-6px);
+}
+
+.feature-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 72px;
+    height: 72px;
+    border-radius: 20px;
+    background: #eaf6ec;
+    font-size: 36px;
+}
+
+.feature-card h3 {
+    color: #204d32;
+    font-size: 19px;
+}
+
+.feature-card p {
+    font-size: 15px;
+    line-height: 1.8;
+}
+
+.contact-section {
+    background: linear-gradient(135deg, #176b3a, #104d2a);
+    padding: 80px 8%;
+}
+
+.contact-section h2 {
+    line-height: 1.3;
+}
+
+.contact-section button {
+    background: #ffffff;
+    color: #176b3a;
+}
+
+.contact-section button:hover {
+    background: #eaf6ec;
+}
+
+footer {
+    padding: 38px 20px;
+    background: #103b25;
+}
+
+footer h3 {
+    font-size: 23px;
+}
+
+/* Responsive homepage */
+@media (max-width: 1000px) {
+    .hero {
+        padding: 70px 6%;
+        gap: 40px;
+    }
+
+    .feature-container {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 700px) {
+    header {
+        padding: 16px 5%;
+        flex-wrap: wrap;
+    }
+
+    nav {
+        display: none;
+    }
+
+    .hero {
+        min-height: auto;
+        flex-direction: column;
+        text-align: center;
+        padding: 65px 6%;
+        gap: 38px;
+    }
+
+    .hero h1 {
+        font-size: clamp(36px, 10vw, 48px);
+        letter-spacing: -1px;
+    }
+
+    .hero-buttons {
+        justify-content: center;
+    }
+
+    .hero-card {
+        width: 100%;
+        max-width: 360px;
+    }
+
+    .section,
+    .features-section {
+        padding: 65px 6%;
+    }
+
+    .feature-container {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .contact-section {
+        padding: 60px 6%;
+    }
+
+    .contact-section h2 {
+        font-size: 29px;
+    }
+}
+
+
+/* ==========================================
+   ZERO WASTE - STITCH DASHBOARD REDESIGN
+   Visual changes only - preserve functionality
+========================================== */
+
+.dashboard-page {
+    --zw-green: #087a3c;
+    --zw-green-dark: #05652f;
+    --zw-green-light: #e5f8eb;
+    --zw-bg: #f6f7ff;
+    --zw-lavender: #eef1ff;
+    --zw-text: #172b46;
+    --zw-muted: #64748b;
+    --zw-border: #e5e9f2;
+
+    width: min(1400px, calc(100% - 40px));
+    margin: 24px auto;
+    padding: 24px;
+    background: var(--zw-bg);
+    color: var(--zw-text);
+    border-radius: 20px;
+    box-sizing: border-box;
+}
+
+.dashboard-page * {
+    box-sizing: border-box;
+}
+
+.dashboard-page h1,
+.dashboard-page h2,
+.dashboard-page h3,
+.dashboard-page h4,
+.dashboard-page p {
+    overflow-wrap: anywhere;
+}
+
+.dashboard-page h1,
+.dashboard-page h2,
+.dashboard-page h3,
+.dashboard-page h4 {
+    color: var(--zw-text);
+}
+
+.dashboard-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+    padding: 18px 22px;
+    margin: -24px -24px 24px;
+    background: #ffffff;
+    border-bottom: 1px solid #dcefe2;
+    border-radius: 20px 20px 0 0;
+}
+
+.dashboard-header h1 {
+    margin: 0;
+    color: var(--zw-green);
+    font-size: clamp(23px, 3vw, 30px);
+    font-weight: 800;
+}
+
+.dashboard-subtitle {
+    margin: 5px 0 0;
+    color: var(--zw-muted);
+    font-size: 13px;
+}
+
+.dashboard-page .logout-btn {
+    background: var(--zw-green);
+    color: #ffffff;
+    border: 0;
+    border-radius: 8px;
+    padding: 11px 18px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+}
+
+.dashboard-page .logout-btn:hover {
+    background: var(--zw-green-dark);
+    transform: translateY(-1px);
+}
+
+.welcome-section {
+    padding: 26px;
+    margin-bottom: 24px;
+    border-radius: 14px;
+    background: linear-gradient(115deg, #eef1ff 0%, #f5f6ff 55%, #e0f8ed 100%);
+    border: 1px solid #e7eaf7;
+}
+
+.welcome-section h2 {
+    margin: 0 0 10px;
+    font-size: clamp(24px, 3vw, 34px);
+    letter-spacing: -0.7px;
+}
+
+.welcome-section p {
+    color: var(--zw-muted);
+    line-height: 1.65;
+}
+
+.welcome-section .dashboard-tagline {
+    margin-bottom: 0;
+}
+
+.dashboard-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.dashboard-page .stat-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+    padding: 22px 18px;
+    background: #ffffff;
+    border: 1px solid var(--zw-border);
+    border-left: 1px solid var(--zw-border);
+    border-radius: 13px;
+    box-shadow: 0 3px 12px rgba(30, 50, 80, 0.035);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.dashboard-page .stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 22px rgba(30, 50, 80, 0.08);
+}
+
+.dashboard-page .stat-icon {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: var(--zw-green-light);
+    font-size: 23px;
+}
+
+.dashboard-page .stat-card h3 {
+    margin: 0 0 5px;
+    color: var(--zw-green);
+    font-size: clamp(22px, 2.5vw, 30px);
+    font-weight: 800;
+}
+
+.dashboard-page .stat-card p {
+    margin: 0;
+    color: var(--zw-muted);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.food-section,
+.inventory-section,
+.ai-alert-section,
+.donation-section,
+.role-feature-section,
+.dashboard-page .my-donations {
+    min-width: 0;
+    margin-bottom: 24px;
+    padding: 24px;
+    background: #ffffff;
+    border: 1px solid var(--zw-border);
+    border-radius: 15px;
+    box-shadow: 0 3px 12px rgba(30, 50, 80, 0.035);
+}
+
+.dashboard-page .section-title {
+    margin-bottom: 20px;
+}
+
+.dashboard-page .section-title h2,
+.dashboard-page .donation-header h2,
+.dashboard-page .role-feature-header h2,
+.dashboard-page .ai-alert-header h2 {
+    margin: 0 0 7px;
+    font-size: 22px;
+    letter-spacing: -0.3px;
+}
+
+.dashboard-page .section-title p,
+.dashboard-page .donation-header p,
+.dashboard-page .role-feature-header p,
+.dashboard-page .ai-alert-header p {
+    margin: 0;
+    color: var(--zw-muted);
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.dashboard-page .food-form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.dashboard-page .form-group {
+    min-width: 0;
+    margin-bottom: 17px;
+}
+
+.dashboard-page .food-form .form-group {
+    margin-bottom: 0;
+}
+
+.dashboard-page label {
+    display: block;
+    margin-bottom: 8px;
+    color: #253a55;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.dashboard-page input:not([type="checkbox"]):not([type="radio"]),
+.dashboard-page select,
+.dashboard-page textarea {
+    width: 100%;
+    min-width: 0;
+    padding: 12px 13px;
+    color: var(--zw-text);
+    background: #f7f8ff;
+    border: 1px solid #e0e5f1;
+    border-radius: 8px;
+    font: inherit;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+
+.dashboard-page input:focus,
+.dashboard-page select:focus,
+.dashboard-page textarea:focus {
+    background: #ffffff;
+    border-color: var(--zw-green);
+    box-shadow: 0 0 0 3px rgba(8, 122, 60, 0.1);
+}
+
+.dashboard-page textarea {
+    resize: vertical;
+    min-height: 90px;
+}
+
+.dashboard-page button,
+.dashboard-page .dashboard-action,
+.dashboard-page .add-food-btn,
+.dashboard-page .donation-submit-btn {
+    font-family: inherit;
+}
+
+.dashboard-page .add-food-btn,
+.dashboard-page .donation-submit-btn,
+.dashboard-page .crop-form button[type="submit"],
+.dashboard-page .dashboard-action {
+    padding: 12px 18px;
+    color: #ffffff;
+    background: var(--zw-green);
+    border: 1px solid var(--zw-green);
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+}
+
+.dashboard-page .add-food-btn:hover,
+.dashboard-page .donation-submit-btn:hover,
+.dashboard-page .crop-form button[type="submit"]:hover,
+.dashboard-page .dashboard-action:hover {
+    background: var(--zw-green-dark);
+    transform: translateY(-1px);
+}
+
+.dashboard-page .inventory-table-container {
+    overflow-x: auto;
+    border: 1px solid var(--zw-border);
+    border-radius: 10px;
+}
+
+.dashboard-page .inventory-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #ffffff;
+}
+
+.dashboard-page .inventory-table th {
+    padding: 14px;
+    background: var(--zw-lavender);
+    color: #34445d;
+    text-align: left;
+    font-size: 12px;
+}
+
+.dashboard-page .inventory-table td {
+    padding: 14px;
+    border-top: 1px solid var(--zw-border);
+    font-size: 13px;
+}
+
+.dashboard-page .empty-inventory,
+.dashboard-page .empty-donations {
+    padding: 24px;
+    color: var(--zw-muted);
+    text-align: center;
+}
+
+.dashboard-page .ai-alert-header,
+.dashboard-page .donation-header,
+.dashboard-page .role-feature-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 22px;
+}
+
+.dashboard-page .ai-icon,
+.dashboard-page .donation-icon,
+.dashboard-page .role-feature-icon {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    border-radius: 13px;
+    background: var(--zw-green-light);
+    font-size: 24px;
+}
+
+.dashboard-page .ai-suggestion-box,
+.dashboard-page .expiry-alert-container {
+    margin-top: 16px;
+    padding: 18px;
+    background: #f7f8ff;
+    border: 1px solid var(--zw-border);
+    border-radius: 11px;
+}
+
+.dashboard-page .dashboard-options {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.dashboard-page .dashboard-card {
+    padding: 23px;
+    background: #ffffff;
+    border: 1px solid var(--zw-border);
+    border-radius: 13px;
+    box-shadow: 0 3px 12px rgba(30, 50, 80, 0.035);
+}
+
+.dashboard-page .dashboard-card h2 {
+    margin: 12px 0 8px;
+    font-size: 19px;
+}
+
+.dashboard-page .dashboard-card p {
+    color: var(--zw-muted);
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.dashboard-page .donation-form-container {
+    padding: 22px;
+    background: #ffffff;
+    border: 1px solid var(--zw-border);
+    border-radius: 12px;
+}
+
+.dashboard-page .donation-form-container>h3 {
+    margin-top: 0;
+    margin-bottom: 18px;
+}
+
+.dashboard-page .donation-type-selector {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 22px;
+}
+
+.dashboard-page .type-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 13px;
+    padding: 18px;
+    background: #ffffff;
+    border: 1px solid var(--zw-border);
+    border-radius: 11px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.dashboard-page .type-card.selected {
+    background: #f0fbf3;
+    border: 2px solid var(--zw-green);
+    padding: 17px;
+}
+
+.dashboard-page .type-icon {
+    font-size: 25px;
+}
+
+.dashboard-page .type-info h4 {
+    margin: 0 0 7px;
+    font-size: 15px;
+}
+
+.dashboard-page .type-info p {
+    margin: 0;
+    color: var(--zw-muted);
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.dashboard-page .form-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.dashboard-page .value-input-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+.dashboard-page .currency-addon {
+    padding: 12px 14px;
+    background: var(--zw-lavender);
+    border: 1px solid #e0e5f1;
+    border-right: 0;
+    border-radius: 8px 0 0 8px;
+}
+
+.dashboard-page .value-input-wrapper input {
+    border-radius: 0 8px 8px 0;
+}
+
+.dashboard-page .status-filter-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 18px;
+}
+
+.dashboard-page .filter-tab,
+.dashboard-page .btn-sm {
+    padding: 9px 13px;
+    background: #ffffff;
+    color: #34445d;
+    border: 1px solid var(--zw-border);
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.dashboard-page .filter-tab.active {
+    color: #ffffff;
+    background: var(--zw-green);
+    border-color: var(--zw-green);
+}
+
+.dashboard-page .filter-tab:hover,
+.dashboard-page .btn-sm:hover {
+    border-color: var(--zw-green);
+}
+
+.dashboard-page .donation-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.dashboard-page .donation-grid>* {
+    min-width: 0;
+}
+
+.dashboard-page .crop-form {
+    padding: 22px;
+    background: #ffffff;
+    border: 1px solid var(--zw-border);
+    border-radius: 12px;
+}
+
+.dashboard-page .crop-form h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+
+.dashboard-page .crop-form form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.dashboard-page .crop-form form>div,
+.dashboard-page .crop-form form>label,
+.dashboard-page .crop-form form>input,
+.dashboard-page .crop-form form>select,
+.dashboard-page .crop-form form>textarea,
+.dashboard-page .crop-form form>button {
+    min-width: 0;
+}
+
+.dashboard-page #ngoDonationArea {
+    min-width: 0;
+}
+
+.dashboard-page #ngoSearchInput {
+    margin-bottom: 5px;
+}
+
+.dashboard-page .back-home {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 11px 16px;
+    color: var(--zw-green);
+    background: #ffffff;
+    border: 1px solid var(--zw-border);
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 700;
+}
+
+.dashboard-page .back-home:hover {
+    background: var(--zw-green-light);
+}
+
+/* Tablet layout */
+@media (max-width: 1000px) {
+    .dashboard-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .dashboard-page .dashboard-options {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .dashboard-page .donation-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Mobile layout */
+@media (max-width: 650px) {
+    .dashboard-page {
+        width: calc(100% - 20px);
+        margin: 10px auto;
+        padding: 14px;
+        border-radius: 12px;
+    }
+
+    .dashboard-header {
+        margin: -14px -14px 16px;
+        padding: 16px;
+        border-radius: 12px 12px 0 0;
+    }
+
+    .welcome-section,
+    .food-section,
+    .inventory-section,
+    .ai-alert-section,
+    .donation-section,
+    .role-feature-section,
+    .dashboard-page .my-donations {
+        padding: 16px;
+        margin-bottom: 16px;
+    }
+
+    .dashboard-stats {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+
+    .dashboard-page .stat-card {
+        padding: 14px 10px;
+        gap: 9px;
+    }
+
+    .dashboard-page .stat-icon {
+        width: 34px;
+        height: 34px;
+        font-size: 18px;
+    }
+
+    .dashboard-page .food-form,
+    .dashboard-page .form-row,
+    .dashboard-page .donation-type-selector,
+    .dashboard-page .dashboard-options,
+    .dashboard-page .crop-form form {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-page .donation-form-container,
+    .dashboard-page .crop-form {
+        padding: 15px;
+    }
+
+    .dashboard-page .role-feature-header,
+    .dashboard-page .donation-header,
+    .dashboard-page .ai-alert-header {
+        align-items: flex-start;
+    }
+
+    .dashboard-page .status-filter-tabs {
+        gap: 7px;
+    }
+
+    .dashboard-page .filter-tab {
+        padding: 8px 10px;
+    }
+}

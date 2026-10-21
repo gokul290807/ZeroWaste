@@ -42,8 +42,8 @@ const FOOD_IMAGE_MAP = [
     {
         file: "bread.svg",
         keywords: [
-            "bread", "breads", "loaf", "loaves", "toast", "bun", "buns", "baguette", 
-            "croissant", "pav", "roti", "chapati", "chapathi", "paratha", "naan", 
+            "bread", "breads", "loaf", "loaves", "toast", "bun", "buns", "baguette",
+            "croissant", "pav", "roti", "chapati", "chapathi", "paratha", "naan",
             "flatbread", "bakery", "sandwich bread"
         ]
     },
@@ -51,7 +51,7 @@ const FOOD_IMAGE_MAP = [
     {
         file: "milk.svg",
         keywords: [
-            "milk", "cow milk", "buffalo milk", "dairy milk", "fresh milk", "toned milk", 
+            "milk", "cow milk", "buffalo milk", "dairy milk", "fresh milk", "toned milk",
             "skimmed milk", "soymilk", "soy milk", "almond milk", "paal", "doodh"
         ]
     },
@@ -59,7 +59,7 @@ const FOOD_IMAGE_MAP = [
     {
         file: "rice.svg",
         keywords: [
-            "rice", "white rice", "brown rice", "basmati", "ponni", "sona masoori", 
+            "rice", "white rice", "brown rice", "basmati", "ponni", "sona masoori",
             "chawal", "arisi", "raw rice", "boiled rice", "steamed rice", "cooked rice"
         ]
     },
@@ -102,7 +102,7 @@ const FOOD_IMAGE_MAP = [
     {
         file: "banana.svg",
         keywords: [
-            "banana", "bananas", "kela", "kele", "vazhaipazham", "plantain", "plantains", 
+            "banana", "bananas", "kela", "kele", "vazhaipazham", "plantain", "plantains",
             "raw banana", "yelakki", "robusta"
         ]
     },
@@ -173,7 +173,7 @@ const FOOD_IMAGE_MAP = [
     {
         file: "chili.svg",
         keywords: [
-            "chili", "chilis", "chilli", "chillies", "mirch", "mirchi", "milagai", 
+            "chili", "chilis", "chilli", "chillies", "mirch", "mirchi", "milagai",
             "green chili", "red chili", "capsicum", "bell pepper"
         ]
     },
@@ -188,8 +188,8 @@ const FOOD_IMAGE_MAP = [
     {
         file: "pulses.svg",
         keywords: [
-            "pulse", "pulses", "dal", "dhal", "daal", "lentil", "lentils", "toor dal", 
-            "moong dal", "urad dal", "chana dal", "chana", "rajma", "gram", "beans", 
+            "pulse", "pulses", "dal", "dhal", "daal", "lentil", "lentils", "toor dal",
+            "moong dal", "urad dal", "chana dal", "chana", "rajma", "gram", "beans",
             "soybean", "soya bean", "paruppu", "peas", "green peas"
         ]
     },
@@ -197,7 +197,7 @@ const FOOD_IMAGE_MAP = [
     {
         file: "biryani.svg",
         keywords: [
-            "biryani", "briyani", "biriyani", "veg biryani", "vegetable biryani", "chicken biryani", 
+            "biryani", "briyani", "biriyani", "veg biryani", "vegetable biryani", "chicken biryani",
             "mutton biryani", "pulao", "pulav", "fried rice"
         ]
     },
@@ -240,7 +240,7 @@ const FOOD_IMAGE_MAP = [
     {
         file: "spices.svg",
         keywords: [
-            "spice", "spices", "turmeric", "haldi", "ginger", "garlic", "cardamom", 
+            "spice", "spices", "turmeric", "haldi", "ginger", "garlic", "cardamom",
             "cinnamon", "clove", "pepper", "masala"
         ]
     },
@@ -255,8 +255,8 @@ const FOOD_IMAGE_MAP = [
     {
         file: "cooked_food.svg",
         keywords: [
-            "cooked", "meal", "meals", "curry", "sambar", "rasam", "sabzi", "gravy", 
-            "korma", "khichdi", "pasta", "noodles", "pizza", "burger", "soup", 
+            "cooked", "meal", "meals", "curry", "sambar", "rasam", "sabzi", "gravy",
+            "korma", "khichdi", "pasta", "noodles", "pizza", "burger", "soup",
             "idli", "dosa", "vada", "samosa", "casserole"
         ]
     },
@@ -264,9 +264,9 @@ const FOOD_IMAGE_MAP = [
     {
         file: "vegetables.svg",
         keywords: [
-            "vegetable", "vegetables", "veggie", "veggies", "cabbage", "cauliflower", 
-            "broccoli", "brinjal", "eggplant", "aubergine", "cucumber", "gourd", 
-            "bottle gourd", "bitter gourd", "okra", "bhindi", "ladies finger", 
+            "vegetable", "vegetables", "veggie", "veggies", "cabbage", "cauliflower",
+            "broccoli", "brinjal", "eggplant", "aubergine", "cucumber", "gourd",
+            "bottle gourd", "bitter gourd", "okra", "bhindi", "ladies finger",
             "beetroot", "radish", "turnip"
         ]
     },
@@ -274,8 +274,8 @@ const FOOD_IMAGE_MAP = [
     {
         file: "fruits.svg",
         keywords: [
-            "fruit", "fruits", "grape", "grapes", "watermelon", "melon", "papaya", 
-            "guava", "pomegranate", "strawberry", "strawberries", "pineapple", "pear", 
+            "fruit", "fruits", "grape", "grapes", "watermelon", "melon", "papaya",
+            "guava", "pomegranate", "strawberry", "strawberries", "pineapple", "pear",
             "peach", "plum", "lemon", "lime"
         ]
     },
@@ -306,18 +306,18 @@ function normalizeItemName(name) {
     str = str.replace(/[.,/#!$%^&*;:{}=\-_`~()]/g, " ");
     // Remove excess whitespace
     str = str.replace(/\s+/g, " ").trim();
-    
+
     // Common descriptive prefixes/adjectives to strip for canonical matching
     const stripPrefixes = [
-        "fresh", "organic", "farm", "local", "surplus", "raw", "pure", "ripe", 
-        "sweet", "green", "red", "yellow", "white", "brown", "cooked", "hot", 
-        "cold", "homemade", "packaged", "dry", "whole", "sliced", "chopped", 
+        "fresh", "organic", "farm", "local", "surplus", "raw", "pure", "ripe",
+        "sweet", "green", "red", "yellow", "white", "brown", "cooked", "hot",
+        "cold", "homemade", "packaged", "dry", "whole", "sliced", "chopped",
         "boiled", "frozen", "unsold", "harvest", "harvested", "healthy"
     ];
-    
+
     const words = str.split(" ").filter(w => w.length > 0);
     const cleanedWords = words.filter(w => !stripPrefixes.includes(w));
-    
+
     return {
         fullOriginal: str,
         cleaned: cleanedWords.join(" "),
@@ -604,7 +604,7 @@ async function registerUser(event) {
     const password = document.getElementById("registerPassword")?.value.trim();
     const role = document.getElementById("role")?.value;
     const contactNumber = document.getElementById("registerContact")?.value.trim();
-    const address = document.getElementById("registerAddress")?.value.trim();
+
 
     if (!name || !email || !password || !role) {
         alert("Please fill all required fields.");
@@ -620,7 +620,7 @@ async function registerUser(event) {
         const response = await fetch(`${API_BASE}/api/register`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ name, email, password, role, contactNumber, address })
+            body: JSON.stringify({ name, email, password, role, contactNumber })
         });
 
         const data = await response.json();

@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <meta content="web_standard" name="shell-type">
+  <title>ZeroWaste - Food Donation &amp; Waste Reduction System</title>
+  <link href="https://fonts.googleapis.com" rel="preconnect">
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Plus+Jakarta+Sans:wght@600;700&amp;display=swap"
+    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"
+    rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+    rel="stylesheet">
+  <style>
+    @layer base {
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        overscroll-behavior: none;
+      }
+
+      main>:first-child {
+        margin-top: 0 !important;
+      }
+
+      main>:last-child {
+        margin-bottom: 0 !important;
+      }
+    }
+
+    ::-webkit-scrollbar {
+      display: none;
+    }
+  </style>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script
+    id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "surface-variant": "#d8e3fb", "tertiary-container": "#b15f00", "on-tertiary-fixed": "#2f1500", "on-primary-container": "#f7fff2", "on-surface-variant": "#3e4a3d", "primary": "#006b2c", "on-secondary": "#ffffff", "on-error": "#ffffff", "on-surface": "#111c2d", "primary-fixed-dim": "#62df7d", "inverse-on-surface": "#ecf1ff", "secondary-fixed": "#cce5ff", "outline-variant": "#bdcaba", "surface-bright": "#f9f9ff", "on-tertiary": "#ffffff", "on-primary": "#ffffff", "surface-container-high": "#dee8ff", "on-background": "#111c2d", "background": "#f9f9ff", "on-primary-fixed": "#002109", "error-container": "#ffdad6", "surface-container-low": "#f0f3ff", "on-secondary-fixed": "#001d31", "tertiary-fixed": "#ffdcc3", "surface-container-lowest": "#ffffff", "primary-container": "#00873a", "surface-tint": "#006e2d", "on-secondary-fixed-variant": "#004b73", "secondary-container": "#5bb8fe", "secondary-fixed-dim": "#93ccff", "outline": "#6e7b6c", "on-tertiary-container": "#fffbff", "primary-fixed": "#7ffc97", "inverse-surface": "#263143", "on-tertiary-fixed-variant": "#6e3900", "tertiary": "#8d4b00", "surface-dim": "#cfdaf2", "on-primary-fixed-variant": "#005320", "surface": "#f9f9ff", "on-error-container": "#93000a", "secondary": "#006398", "tertiary-fixed-dim": "#ffb77d", "on-secondary-container": "#00476e", "error": "#ba1a1a", "surface-container": "#e7eeff", "surface-container-highest": "#d8e3fb", "inverse-primary": "#62df7d" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "space-xl": "2.5rem", "margin-mobile": "1rem", "space-lg": "1.5rem", "margin": "2rem", "space-sm": "0.5rem", "space-md": "1rem", "space-xs": "0.25rem", "gutter": "1.5rem", "gutter-mobile": "1rem" }, "fontFamily": { "headline-md": ["Plus Jakarta Sans"], "headline-lg-mobile": ["Plus Jakarta Sans"], "body-md": ["Inter"], "label-lg": ["Inter"], "body-lg": ["Inter"], "headline-sm": ["Plus Jakarta Sans"], "body-sm": ["Inter"], "label-sm": ["Inter"], "headline-xl-mobile": ["Plus Jakarta Sans"], "label-md": ["Inter"], "headline-xl": ["Plus Jakarta Sans"], "headline-lg": ["Plus Jakarta Sans"] }, "fontSize": { "headline-md": ["22px", { "lineHeight": "28px", "fontWeight": "600" }], "headline-lg-mobile": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }], "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }], "label-lg": ["14px", { "lineHeight": "20px", "fontWeight": "600" }], "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }], "headline-sm": ["18px", { "lineHeight": "24px", "fontWeight": "600" }], "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }], "label-sm": ["10px", { "lineHeight": "14px", "letterSpacing": "0.04em", "fontWeight": "700" }], "headline-xl-mobile": ["30px", { "lineHeight": "36px", "letterSpacing": "-0.01em", "fontWeight": "700" }], "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600" }], "headline-xl": ["40px", { "lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700" }], "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }] } } } };</script>
+</head>
+
+<body class="bg-background font-body-md text-on-surface antialiased min-h-screen flex flex-col">
+  <header
+    class="fixed top-0 left-0 right-0 z-50 bg-surface-container-lowest border-b border-primary-fixed-dim/40 shadow-[0_1px_8px_rgba(0,0,0,0.03)]">
+    <div class="h-20 max-w-[1280px] mx-auto px-margin flex items-center justify-between gap-space-md">
+      <div class="flex items-center gap-space-lg"><a class="flex items-center gap-space-sm group focus:outline-none"
+          data-path="home" href="#"><img alt="ZeroWaste Logo" class="h-8 w-auto object-contain"
+            src="https://lh3.googleusercontent.com/aida/AEtjO1UTddhgjX8TqURS_W7JFnoF-OPYu2WmpCn9j9y_AWU5My-3u6XEdnRZVOCd-2Y-fZLjAFJmQxUCxaaGsksOSuR4LIcEiG49cO7lAN2bsuyT7xraiCstlMiocPG-4YEP-cyB-95o-EunE47W4uZAj_h3Opptxrum-KE1GFKfvg0MAN_C7vOwQG_0-lJD6ETzZOyjvvd_V5AvC3OOzSDehcj8I2-nejFtdh-OIhvnbWKnLTcaQMnH9yzNXjE"><span
+            class="font-headline-md text-headline-md text-primary tracking-tight">ZeroWaste</span></a>
+        <div class="hidden xl:flex items-center p-space-xs bg-surface-container-low rounded-full"><span
+            class="px-space-sm py-0.5 rounded-full font-label-sm text-label-sm uppercase bg-surface-container-lowest text-primary shadow-[0_1px_3px_0_rgba(30,41,59,0.05)]">Household</span><span
+            class="px-space-sm py-0.5 rounded-full font-label-sm text-label-sm uppercase text-on-surface-variant hover:text-on-surface cursor-pointer transition-colors">Farmer</span><span
+            class="px-space-sm py-0.5 rounded-full font-label-sm text-label-sm uppercase text-on-surface-variant hover:text-on-surface cursor-pointer transition-colors">NGO</span>
+        </div>
+      </div>
+      <nav class="hidden lg:flex items-center gap-space-xs"
+        data-active-classes="bg-primary-container text-on-primary-container font-label-lg rounded-lg"><a
+          class="px-space-sm py-space-xs font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low rounded-lg transition-all"
+          data-path="home" href="#">Home</a><a aria-current="page"
+          class="px-space-sm py-space-xs transition-all bg-primary-container text-on-primary-container font-label-lg rounded-lg"
+          data-path="household-portal" href="new-household.html">Household Portal</a><a
+          class="px-space-sm py-space-xs font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low rounded-lg transition-all"
+          data-path="farmer-hub" href="new-farmer.html">Farmer Hub</a><a
+          class="px-space-sm py-space-xs font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low rounded-lg transition-all"
+          data-path="ngo-market" href="new-ngo.html">NGO Market</a><a
+          class="px-space-sm py-space-xs font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low rounded-lg transition-all"
+          data-path="requests-and-pickups" href="#">Requests &amp; Pickups</a></nav>
+      <div class="flex items-center gap-space-sm">
+        <div class="hidden sm:flex items-center gap-1.5 px-space-sm py-1 bg-surface-container-low rounded-full"><span
+            class="w-2 h-2 rounded-full bg-primary animate-pulse"></span><span
+            class="font-label-sm text-label-sm uppercase text-primary">Active Donor</span></div><button
+          aria-label="Notifications"
+          class="p-space-xs rounded-full text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors relative"
+          type="button"><span class="material-symbols-outlined text-[22px]">notifications</span><span
+            class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-tertiary-container"></span></button>
+        <div class="flex items-center gap-space-xs pl-space-xs">
+          <div
+            class="w-8 h-8 rounded-full bg-primary-fixed text-primary flex items-center justify-center font-bold text-label-sm ring-2 ring-primary-fixed">
+            <span class="material-symbols-outlined text-[18px]">person</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+  <main class="w-full flex-1 pt-20 bg-background">
+    <div class="flex flex-col w-full">
+      <div
+        class="max-w-[1280px] w-full mx-auto px-margin-mobile sm:px-margin py-space-md sm:py-space-lg flex flex-col gap-space-lg">
+        <!-- Top Greeting & Header Actions -->
+        <div
+          class="flex flex-col md:flex-row md:items-end justify-between gap-space-md bg-surface-container-lowest p-space-lg rounded-xl shadow-sm">
+          <div class="flex flex-col gap-space-xs">
+            <div class="flex items-center gap-space-xs"><span
+                class="px-space-sm py-0.5 rounded-full font-label-sm text-label-sm uppercase bg-primary-fixed text-on-primary-fixed">Household
+                Donor</span><span
+                class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1"><span
+                  class="material-symbols-outlined text-[14px] text-primary">location_on</span> Set Primary
+                Neighborhood</span></div>
+            <h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight">Household Dashboard</h1>
+            <p class="font-body-md text-body-md text-on-surface-variant max-w-xl">Track your surplus food donations and
+              connect with local relief partners.</p>
+          </div>
+          <div class="flex items-center gap-space-sm flex-wrap">
+            <button
+              class="bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg px-space-lg py-3 rounded-lg shadow-sm transition-all duration-200 flex items-center gap-space-xs cursor-pointer group"
+              id="toggle-form-btn" type="button">
+              <span
+                class="material-symbols-outlined text-[20px] group-hover:rotate-90 transition-transform duration-300">add</span>
+              <span class="">Post Food Donation</span>
+            </button>
+          </div>
+        </div>
+        <!-- KPI Summary Bento Row -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-space-md">
+          <div
+            class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between mb-space-sm"><span
+                class="font-label-md text-label-md uppercase text-on-surface-variant">Active Listings</span>
+              <div class="w-9 h-9 rounded-lg bg-secondary-fixed flex items-center justify-center text-secondary"><span
+                  class="material-symbols-outlined text-[20px]">inventory_2</span></div>
+            </div>
+            <div class="flex items-baseline gap-space-xs"><span
+                class="font-headline-xl text-headline-xl text-on-surface tracking-tight">0</span><span
+                class="font-label-sm text-label-sm text-on-surface-variant uppercase font-bold">0 Free • 0
+                Subsidized</span></div>
+            <p class="font-body-sm text-body-sm text-on-surface-variant mt-space-xs">Available for direct pickup</p>
+          </div>
+          <div
+            class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between mb-space-sm"><span
+                class="font-label-md text-label-md uppercase text-on-surface-variant">Pending Requests</span>
+              <div class="w-9 h-9 rounded-lg bg-tertiary-fixed flex items-center justify-center text-tertiary"><span
+                  class="material-symbols-outlined text-[20px]">notifications_active</span></div>
+            </div>
+            <div class="flex items-baseline gap-space-xs"><span
+                class="font-headline-xl text-headline-xl text-on-surface tracking-tight">0</span><span
+                class="font-label-sm text-label-sm text-on-surface-variant uppercase font-bold">No actions
+                required</span></div>
+            <p class="font-body-sm text-body-sm text-on-surface-variant mt-space-xs">Awaiting your approval</p>
+          </div>
+          <div
+            class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between mb-space-sm"><span
+                class="font-label-md text-label-md uppercase text-on-surface-variant">Completed Donations</span>
+              <div class="w-9 h-9 rounded-lg bg-primary-fixed flex items-center justify-center text-primary"><span
+                  class="material-symbols-outlined text-[20px]">task_alt</span></div>
+            </div>
+            <div class="flex items-baseline gap-space-xs"><span
+                class="font-headline-xl text-headline-xl text-on-surface tracking-tight">0</span><span
+                class="font-label-sm text-label-sm text-on-surface-variant uppercase font-bold">0 this week</span></div>
+            <p class="font-body-sm text-body-sm text-on-surface-variant mt-space-xs">Handed over safely</p>
+          </div>
+          <div
+            class="bg-primary text-on-primary p-space-lg rounded-xl shadow-sm flex flex-col justify-between relative overflow-hidden group">
+            <div class="flex items-center justify-between mb-space-sm"><span
+                class="font-label-md text-label-md uppercase text-primary-fixed">People Fed</span>
+              <div
+                class="w-9 h-9 rounded-lg bg-primary-container flex items-center justify-center text-on-primary-container">
+                <span class="material-symbols-outlined text-[20px]">volunteer_activism</span>
+              </div>
+            </div>
+            <div class="flex items-baseline gap-space-xs"><span
+                class="font-headline-xl text-headline-xl text-on-primary tracking-tight">0</span><span
+                class="font-label-sm text-label-sm text-primary-fixed uppercase font-bold">Portions Shared</span></div>
+            <p class="font-body-sm text-body-sm text-on-primary-container/80 mt-space-xs">Direct community impact</p>
+          </div>
+        </div>
+        <!-- SECTION 1: Add Surplus Food Donation (Collapsible Card Form) -->
+        <div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden transition-all duration-300"
+          id="donation-form-panel">
+          <div class="p-space-lg flex items-center justify-between cursor-pointer select-none bg-surface-container-low"
+            id="form-header-toggle">
+            <div class="flex items-center gap-space-sm">
+              <div class="w-10 h-10 rounded-lg bg-primary-fixed text-primary flex items-center justify-center">
+                <span class="material-symbols-outlined text-[24px]">add_circle</span>
+              </div>
+              <div>
+                <h2 class="font-headline-md text-headline-md text-on-surface">Add Surplus Food Donation</h2>
+                <p class="font-body-sm text-body-sm text-on-surface-variant">List edible kitchen surplus, batch prep, or
+                  bakery items to be salvaged</p>
+              </div>
+            </div>
+            <button aria-label="Toggle section" class="p-2 text-on-surface-variant hover:text-on-surface" type="button">
+              <span class="material-symbols-outlined text-[24px] transition-transform duration-300 rotate-180"
+                id="form-chevron">expand_more</span>
+            </button>
+          </div>
+          <form class="p-space-lg flex flex-col gap-space-lg" id="donation-form">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-space-md">
+              <!-- Food Name -->
+              <div class="md:col-span-8 flex flex-col gap-space-xs">
+                <label class="font-label-lg text-label-lg text-on-surface flex items-center gap-1" for="food-name">
+                  Food Item Name <span class="text-error">*</span>
+                </label>
+                <input
+                  class="w-full bg-surface p-space-sm rounded-lg font-body-md text-body-md text-on-surface placeholder:text-outline focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary shadow-sm"
+                  id="food-name" placeholder="e.g. Freshly Baked Sourdough Loaves" required="" type="text">
+              </div>
+              <!-- Donation Type Toggle -->
+              <div class="md:col-span-4 flex flex-col gap-space-xs">
+                <label class="font-label-lg text-label-lg text-on-surface">Donation Type <span
+                    class="text-error">*</span></label>
+                <div class="grid grid-cols-2 p-1 bg-surface-container rounded-lg">
+                  <button
+                    class="py-2 text-center font-label-md text-label-md rounded-md bg-surface-container-lowest text-primary shadow-sm transition-all"
+                    id="type-free-btn" type="button">
+                    100% Free
+                  </button>
+                  <button
+                    class="py-2 text-center font-label-md text-label-md rounded-md text-on-surface-variant hover:text-on-surface transition-all"
+                    id="type-paid-btn" type="button">
+                    Subsidized / Paid
+                  </button>
+                </div>
+                <input id="donation-type" type="hidden" value="free">
+              </div>
+              <!-- Quantity and Unit Selector -->
+              <div class="md:col-span-4 flex flex-col gap-space-xs">
+                <label class="font-label-lg text-label-lg text-on-surface" for="food-qty">Quantity &amp; Unit <span
+                    class="text-error">*</span></label>
+                <div class="flex gap-space-xs">
+                  <input
+                    class="w-1/2 bg-surface p-space-sm rounded-lg font-body-md text-body-md text-on-surface placeholder:text-outline focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary shadow-sm"
+                    id="food-qty" min="1" placeholder="5" required="" type="number">
+                  <select
+                    class="w-1/2 bg-surface p-space-sm rounded-lg font-body-md text-body-md text-on-surface focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary shadow-sm cursor-pointer"
+                    id="food-unit">
+                    <option value="loaves">loaves</option>
+                    <option value="kg">kg</option>
+                    <option value="servings">servings</option>
+                    <option value="litres">litres</option>
+                    <option value="boxes">boxes</option>
+                    <option value="pieces">pieces</option>
+                  </select>
+                </div>
+              </div>
+              <!-- Location of Food -->
+              <div class="md:col-span-4 flex flex-col gap-space-xs">
+                <label class="font-label-lg text-label-lg text-on-surface" for="food-location">Location of Food (Pickup
+                  Area) <span class="text-error">*</span></label>
+                <div class="relative">
+                  <input
+                    class="w-full bg-surface p-space-sm pr-9 rounded-lg font-body-md text-body-md text-on-surface placeholder:text-outline focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary shadow-sm"
+                    id="food-location" placeholder="Address or neighborhood area" required="" type="text">
+                  <span
+                    class="material-symbols-outlined text-[18px] text-outline absolute right-3 top-3">my_location</span>
+                </div>
+              </div>
+              <!-- Expiry / Best Before Date -->
+              <div class="md:col-span-4 flex flex-col gap-space-xs">
+                <label class="font-label-lg text-label-lg text-on-surface" for="food-expiry">Expiry / Best Before <span
+                    class="text-error">*</span></label>
+                <input
+                  class="w-full bg-surface p-space-sm rounded-lg font-body-md text-body-md text-on-surface placeholder:text-outline focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary shadow-sm"
+                  id="food-expiry" required="" type="datetime-local">
+              </div>
+              <!-- Dynamic Paid Expected Amount (Hidden by Default) -->
+              <div class="md:col-span-12 hidden" id="paid-field-container">
+                <div
+                  class="p-space-md bg-tertiary-fixed/30 rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-space-md">
+                  <div class="flex flex-col gap-0.5">
+                    <label class="font-label-lg text-label-lg text-on-surface flex items-center gap-1"
+                      for="expected-amount">
+                      Subsidized Recovery Amount ($ or ₹) <span class="text-error">*</span>
+                    </label>
+                    <p class="font-body-sm text-body-sm text-tertiary-container">
+                      Helper Note: Keep nominal to cover container/ingredient costs. Free donation gets highest matching
+                      priority with emergency food drives.
+                    </p>
+                  </div>
+                  <div class="relative sm:w-64">
+                    <span
+                      class="absolute left-3 top-2.5 font-label-md text-label-md text-on-surface-variant font-semibold">$
+                      / ₹</span>
+                    <input
+                      class="w-full pl-12 pr-space-sm py-2 bg-surface-container-lowest rounded-lg font-body-md text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-tertiary"
+                      id="expected-amount" placeholder="e.g. $4.50 or ₹150" type="text">
+                  </div>
+                </div>
+              </div>
+              <!-- Description -->
+              <div class="md:col-span-12 flex flex-col gap-space-xs">
+                <label class="font-label-lg text-label-lg text-on-surface" for="food-desc">Description &amp;
+                  Dietary/Storage Notes</label>
+                <textarea
+                  class="w-full bg-surface p-space-sm rounded-lg font-body-md text-body-md text-on-surface placeholder:text-outline focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary shadow-sm"
+                  id="food-desc"
+                  placeholder="e.g. Baked this morning at home. Packed cleanly in parchment paper. Vegan, contains wheat gluten. Kept refrigerated."
+                  rows="3"></textarea>
+              </div>
+            </div>
+            <!-- Form Actions -->
+            <div class="flex items-center justify-end gap-space-sm pt-space-xs">
+              <button
+                class="px-space-md py-2.5 rounded-lg font-label-lg text-label-lg text-on-surface-variant hover:bg-surface-container-low transition-colors"
+                id="cancel-form-btn" type="button">
+                Cancel
+              </button>
+              <button
+                class="px-space-lg py-2.5 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg shadow-sm transition-all"
+                type="submit">
+                Post Donation
+              </button>
+            </div>
+          </form>
+        </div>
+        <!-- SECTION 3: Incoming NGO Requests (Prioritized dispatch view) -->
+        <div class="flex flex-col gap-space-md">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-xs">
+            <div>
+              <div class="flex items-center gap-space-xs">
+                <span class="w-2.5 h-2.5 rounded-full bg-tertiary-container animate-pulse"></span>
+                <h2 class="font-headline-md text-headline-md text-on-surface">Incoming NGO Requests</h2>
+              </div>
+              <p class="font-body-sm text-body-sm text-on-surface-variant">Review pick-up bids from accredited relief
+                partners and community shelters</p>
+            </div>
+            <div class="flex items-center gap-space-xs">
+              <span
+                class="font-label-sm text-label-sm uppercase px-space-sm py-1 rounded-full bg-surface-container-high text-on-surface">0
+                Awaiting Response</span>
+            </div>
+          </div>
+          <div
+            class="bg-surface-container-lowest p-space-xl rounded-xl shadow-sm flex flex-col items-center justify-center text-center gap-space-sm border border-dashed border-outline-variant">
+            <div
+              class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center text-outline mb-space-xs">
+              <span class="material-symbols-outlined text-[28px]">inbox</span>
+            </div>
+            <h3 class="font-headline-sm text-headline-sm text-on-surface">No incoming NGO requests yet</h3>
+            <p class="font-body-md text-body-md text-on-surface-variant max-w-md">When an accredited local food bank or
+              shelter requests your listed food, their pickup proposal will appear here for your review and approval.
+            </p>
+          </div>
+        </div>
+        <!-- SECTION 2: My Active Donations Table & Grid -->
+        <div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden flex flex-col">
+          <div class="p-space-lg flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm">
+            <div>
+              <h2 class="font-headline-md text-headline-md text-on-surface">My Active Donations</h2>
+              <p class="font-body-sm text-body-sm text-on-surface-variant">Manage your open surplus items, modify
+                weights, or mark as claimed</p>
+            </div>
+            <div class="flex items-center gap-space-xs">
+              <div class="flex items-center bg-surface-container rounded-lg p-1"><button
+                  class="px-space-sm py-1 rounded-md text-label-sm font-label-sm uppercase bg-surface-container-lowest text-primary shadow-sm">All
+                  (0)</button><button
+                  class="px-space-sm py-1 rounded-md text-label-sm font-label-sm uppercase text-on-surface-variant hover:text-on-surface">Free
+                  (0)</button><button
+                  class="px-space-sm py-1 rounded-md text-label-sm font-label-sm uppercase text-on-surface-variant hover:text-on-surface">Paid
+                  (0)</button></div>
+            </div>
+          </div>
+          <!-- Desktop & Tablet Table Representation -->
+          <div class="w-full overflow-x-auto">
+            <table class="w-full text-left min-w-[760px]">
+              <thead>
+                <tr
+                  class="bg-surface-container-low text-on-surface-variant font-label-md text-label-md uppercase tracking-wider">
+                  <th class="py-space-sm px-space-lg font-semibold">Food Listing</th>
+                  <th class="py-space-sm px-space-md font-semibold">Type &amp; Pricing</th>
+                  <th class="py-space-sm px-space-md font-semibold">Quantity</th>
+                  <th class="py-space-sm px-space-md font-semibold">Location</th>
+                  <th class="py-space-sm px-space-md font-semibold">Posted</th>
+                  <th class="py-space-sm px-space-md font-semibold">Status</th>
+                  <th class="py-space-sm px-space-lg text-right font-semibold">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y-0" id="donations-table-body">
+                <tr>
+                  <td class="py-space-xl px-space-lg text-center" colspan="7">
+                    <div class="flex flex-col items-center justify-center gap-space-xs max-w-md mx-auto">
+                      <div
+                        class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center text-outline mb-space-xs">
+                        <span class="material-symbols-outlined text-[28px]">soup_kitchen</span>
+                      </div>
+                      <p class="font-headline-sm text-headline-sm text-on-surface">No food donations posted yet</p>
+                      <p class="font-body-md text-body-md text-on-surface-variant">Use the form above to post home
+                        meals, bakery surplus, or pantry overstock to help your community.</p><button
+                        class="mt-space-sm px-space-lg py-2 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg shadow-sm transition-all flex items-center gap-1 cursor-pointer"
+                        onclick="document.getElementById('toggle-form-btn').click()" type="button"><span
+                          class="material-symbols-outlined text-[18px]">add</span>Post Donation</button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <!-- Footer Insight inside Card -->
+          <div
+            class="p-space-md bg-surface-container-low flex flex-col sm:flex-row items-center justify-between text-body-sm text-on-surface-variant gap-2">
+            <div class="flex items-center gap-space-xs">
+              <span class="material-symbols-outlined text-[16px] text-primary">eco</span>
+              <span class="">Pickups are covered under the Good Samaritan Food Donation Safety Framework.</span>
+            </div>
+            <div class="flex items-center gap-space-sm font-label-md text-label-md">
+              <a class="text-primary hover:underline" href="#">Download Donation Tax Slip</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Client-side Interactive Behavior Script -->
+      <script>
+        // Form toggle logic
+        const toggleBtn = document.getElementById('toggle-form-btn');
+        const formPanel = document.getElementById('donation-form-panel');
+        const headerToggle = document.getElementById('form-header-toggle');
+        const formChevron = document.getElementById('form-chevron');
+        const cancelBtn = document.getElementById('cancel-form-btn');
+
+        let isFormOpen = true;
+
+        function setFormState(open) {
+          isFormOpen = open;
+          const formEl = document.getElementById('donation-form');
+          if (open) {
+            formEl.classList.remove('hidden');
+            formChevron.classList.add('rotate-180');
+          } else {
+            formEl.classList.add('hidden');
+            formChevron.classList.remove('rotate-180');
+          }
+        }
+
+        toggleBtn?.addEventListener('click', () => {
+          setFormState(true);
+          formPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+
+        headerToggle?.addEventListener('click', () => {
+          setFormState(!isFormOpen);
+        });
+
+        cancelBtn?.addEventListener('click', () => {
+          setFormState(false);
+        });
+
+        // Donation Type Toggle (Free vs Paid)
+        const typeFreeBtn = document.getElementById('type-free-btn');
+        const typePaidBtn = document.getElementById('type-paid-btn');
+        const typeInput = document.getElementById('donation-type');
+        const paidFieldContainer = document.getElementById('paid-field-container');
+
+        typeFreeBtn?.addEventListener('click', () => {
+          typeInput.value = 'free';
+          typeFreeBtn.className = 'py-2 text-center font-label-md text-label-md rounded-md bg-surface-container-lowest text-primary shadow-sm transition-all';
+          typePaidBtn.className = 'py-2 text-center font-label-md text-label-md rounded-md text-on-surface-variant hover:text-on-surface transition-all';
+          paidFieldContainer.classList.add('hidden');
+        });
+
+        typePaidBtn?.addEventListener('click', () => {
+          typeInput.value = 'paid';
+          typePaidBtn.className = 'py-2 text-center font-label-md text-label-md rounded-md bg-surface-container-lowest text-tertiary shadow-sm transition-all';
+          typeFreeBtn.className = 'py-2 text-center font-label-md text-label-md rounded-md text-on-surface-variant hover:text-on-surface transition-all';
+          paidFieldContainer.classList.remove('hidden');
+        });
+
+        // Request Decision Handlers
+        window.handleAccept = function (requestId) {
+          const actionsDiv = document.getElementById('actions-card-' + requestId);
+          if (actionsDiv) {
+            actionsDiv.innerHTML = `
+          <div class="flex items-center gap-2 text-primary font-label-lg text-label-lg py-1">
+            <span class="material-symbols-outlined text-[20px]">check_circle</span>
+            Request Accepted &bull; Dispatch code #ZW-${Math.floor(1000 + Math.random() * 9000)} generated
+          </div>
+        `;
+          }
+        };
+
+        window.handleReject = function (requestId) {
+          const card = document.getElementById('request-card-' + requestId);
+          if (card) {
+            card.style.opacity = '0.5';
+            const actionsDiv = document.getElementById('actions-card-' + requestId);
+            if (actionsDiv) {
+              actionsDiv.innerHTML = `
+            <span class="text-error font-label-md text-label-md uppercase">Request Declined &bull; Returned to queue</span>
+          `;
+            }
+          }
+        };
+
+        // New Food Post Submission Simulation
+        const form = document.getElementById('donation-form');
+        form?.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const foodName = document.getElementById('food-name').value;
+          const qty = document.getElementById('food-qty').value;
+          const unit = document.getElementById('food-unit').value;
+          const location = document.getElementById('food-location').value;
+          const isPaid = typeInput.value === 'paid';
+          const amount = document.getElementById('expected-amount').value || '$3.00';
+
+          const tableBody = document.getElementById('donations-table-body');
+          const newRow = document.createElement('tr');
+          newRow.className = 'hover:bg-surface-container-low/50 transition-colors group bg-primary-fixed/20';
+          newRow.innerHTML = `
+        <td class="py-space-md px-space-lg">
+          <div class="flex items-center gap-space-sm">
+            <div class="w-12 h-12 rounded-lg bg-primary-fixed text-primary flex items-center justify-center flex-shrink-0 font-bold">
+              NEW
+            </div>
+            <div class="flex flex-col">
+              <span class="font-headline-sm text-headline-sm text-on-surface group-hover:text-primary transition-colors">
+                ${foodName}
+              </span>
+              <span class="font-body-sm text-body-sm text-primary flex items-center gap-1">
+                <span class="material-symbols-outlined text-[14px]">bolt</span> Just listed now
+              </span>
+            </div>
+          </div>
+        </td>
+        <td class="py-space-md px-space-md">
+          <span class="px-space-sm py-0.5 rounded-full font-label-sm text-label-sm uppercase ${isPaid ? 'bg-tertiary-fixed text-tertiary' : 'bg-primary-fixed text-on-primary-fixed'} font-bold">
+            ${isPaid ? 'Paid • ' + amount : 'Free'}
+          </span>
+        </td>
+        <td class="py-space-md px-space-md font-body-md text-body-md text-on-surface">
+          ${qty} ${unit}
+        </td>
+        <td class="py-space-md px-space-md font-body-sm text-body-sm text-on-surface-variant">
+          ${location}
+        </td>
+        <td class="py-space-md px-space-md font-body-sm text-body-sm text-on-surface-variant">
+          Just now
+        </td>
+        <td class="py-space-md px-space-md">
+          <span class="px-space-sm py-0.5 rounded-full font-label-sm text-label-sm uppercase bg-primary-container text-on-primary-container font-semibold">
+            Available
+          </span>
+        </td>
+        <td class="py-space-md px-space-lg text-right">
+          <div class="flex items-center justify-end gap-space-xs">
+            <button type="button" class="p-1.5 rounded hover:bg-surface-container text-on-surface-variant hover:text-primary">
+              <span class="material-symbols-outlined text-[18px]">visibility</span>
+            </button>
+            <button type="button" class="p-1.5 rounded hover:bg-surface-container text-on-surface-variant hover:text-on-surface">
+              <span class="material-symbols-outlined text-[18px]">edit</span>
+            </button>
+          </div>
+        </td>
+      `;
+
+          tableBody.prepend(newRow);
+          form.reset();
+          setFormState(false);
+        });
+      </script>
+    </div>
+  </main>
+  <footer class="w-full bg-surface-container-low mt-auto">
+    <div class="max-w-[1280px] mx-auto px-margin py-space-xl">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-space-lg mb-space-lg">
+        <div class="md:col-span-2 flex flex-col gap-space-sm">
+          <div class="flex items-center gap-space-xs"><img alt="ZeroWaste Logo" class="h-6 w-auto object-contain"
+              src="https://lh3.googleusercontent.com/aida/AEtjO1UTddhgjX8TqURS_W7JFnoF-OPYu2WmpCn9j9y_AWU5My-3u6XEdnRZVOCd-2Y-fZLjAFJmQxUCxaaGsksOSuR4LIcEiG49cO7lAN2bsuyT7xraiCstlMiocPG-4YEP-cyB-95o-EunE47W4uZAj_h3Opptxrum-KE1GFKfvg0MAN_C7vOwQG_0-lJD6ETzZOyjvvd_V5AvC3OOzSDehcj8I2-nejFtdh-OIhvnbWKnLTcaQMnH9yzNXjE"><span
+              class="font-headline-sm text-headline-sm text-primary">ZeroWaste</span></div>
+          <p class="font-body-md text-body-md text-on-surface-variant max-w-md">A community-driven perishable inventory
+            routing and redistribution network. Bridging surpluses from households and local farms directly to food
+            banks and families in need.</p>
+          <div class="inline-flex items-center gap-space-xs mt-space-xs"><span
+              class="px-space-sm py-0.5 rounded-full font-label-sm text-label-sm uppercase bg-surface-container-high text-on-surface">Capstone
+              Engineering Project</span><span class="font-body-sm text-body-sm text-on-surface-variant">Dept. of
+              Computer Science &amp; Community Tech</span></div>
+        </div>
+        <div class="flex flex-col gap-space-xs"><span
+            class="font-label-md text-label-md uppercase text-on-surface mb-space-xs">Platform Links</span><a
+            class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors"
+            data-path="household-portal" href="#">Household Donors</a><a
+            class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors"
+            data-path="farmer-hub" href="#">Farmer Crop Surplus</a><a
+            class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors"
+            data-path="ngo-market" href="#">NGO Distribution Queue</a><a
+            class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors"
+            data-path="requests-and-pickups" href="#">Active Pickups</a></div>
+        <div class="flex flex-col gap-space-xs"><span
+            class="font-label-md text-label-md uppercase text-on-surface mb-space-xs">Safety &amp; Compliance</span><a
+            class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="#">Food
+            Quality Standards</a><a
+            class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors"
+            href="#">Cold-Chain Protocols</a><a
+            class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="#">Good
+            Samaritan Act Info</a><a
+            class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors"
+            href="#">Privacy &amp; Terms</a></div>
+      </div>
+      <div
+        class="pt-space-md flex flex-col sm:flex-row items-center justify-between gap-space-sm font-body-sm text-body-sm text-on-surface-variant">
+        <p class="">© 2025 ZeroWaste Initiative. Built for sustainable circular food logistics.</p>
+        <p class="text-outline">Non-commercial collegiate prototype • Open Food Network Compatible</p>
+      </div>
+    </div>
+  </footer>
+
+</body>
+
+</html>

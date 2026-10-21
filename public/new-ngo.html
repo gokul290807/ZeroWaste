@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <meta content="web_standard" name="shell-type">
+  <title>ZeroWaste - Food Donation &amp; Waste Reduction System</title>
+  <link href="https://fonts.googleapis.com" rel="preconnect">
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Plus+Jakarta+Sans:wght@600;700&amp;display=swap"
+    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"
+    rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+    rel="stylesheet">
+  <style>
+    @layer base {
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        overscroll-behavior: none;
+      }
+
+      main>:first-child {
+        margin-top: 0 !important;
+      }
+
+      main>:last-child {
+        margin-bottom: 0 !important;
+      }
+    }
+
+    ::-webkit-scrollbar {
+      display: none;
+    }
+  </style>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script
+    id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "surface-variant": "#d8e3fb", "tertiary-container": "#b15f00", "on-tertiary-fixed": "#2f1500", "on-primary-container": "#f7fff2", "on-surface-variant": "#3e4a3d", "primary": "#006b2c", "on-secondary": "#ffffff", "on-error": "#ffffff", "on-surface": "#111c2d", "primary-fixed-dim": "#62df7d", "inverse-on-surface": "#ecf1ff", "secondary-fixed": "#cce5ff", "outline-variant": "#bdcaba", "surface-bright": "#f9f9ff", "on-tertiary": "#ffffff", "on-primary": "#ffffff", "surface-container-high": "#dee8ff", "on-background": "#111c2d", "background": "#f9f9ff", "on-primary-fixed": "#002109", "error-container": "#ffdad6", "surface-container-low": "#f0f3ff", "on-secondary-fixed": "#001d31", "tertiary-fixed": "#ffdcc3", "surface-container-lowest": "#ffffff", "primary-container": "#00873a", "surface-tint": "#006e2d", "on-secondary-fixed-variant": "#004b73", "secondary-container": "#5bb8fe", "secondary-fixed-dim": "#93ccff", "outline": "#6e7b6c", "on-tertiary-container": "#fffbff", "primary-fixed": "#7ffc97", "inverse-surface": "#263143", "on-tertiary-fixed-variant": "#6e3900", "tertiary": "#8d4b00", "surface-dim": "#cfdaf2", "on-primary-fixed-variant": "#005320", "surface": "#f9f9ff", "on-error-container": "#93000a", "secondary": "#006398", "tertiary-fixed-dim": "#ffb77d", "on-secondary-container": "#00476e", "error": "#ba1a1a", "surface-container": "#e7eeff", "surface-container-highest": "#d8e3fb", "inverse-primary": "#62df7d" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "space-xl": "2.5rem", "margin-mobile": "1rem", "space-lg": "1.5rem", "margin": "2rem", "space-sm": "0.5rem", "space-md": "1rem", "space-xs": "0.25rem", "gutter": "1.5rem", "gutter-mobile": "1rem" }, "fontFamily": { "headline-md": ["Plus Jakarta Sans"], "headline-lg-mobile": ["Plus Jakarta Sans"], "body-md": ["Inter"], "label-lg": ["Inter"], "body-lg": ["Inter"], "headline-sm": ["Plus Jakarta Sans"], "body-sm": ["Inter"], "label-sm": ["Inter"], "headline-xl-mobile": ["Plus Jakarta Sans"], "label-md": ["Inter"], "headline-xl": ["Plus Jakarta Sans"], "headline-lg": ["Plus Jakarta Sans"] }, "fontSize": { "headline-md": ["22px", { "lineHeight": "28px", "fontWeight": "600" }], "headline-lg-mobile": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }], "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }], "label-lg": ["14px", { "lineHeight": "20px", "fontWeight": "600" }], "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }], "headline-sm": ["18px", { "lineHeight": "24px", "fontWeight": "600" }], "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }], "label-sm": ["10px", { "lineHeight": "14px", "letterSpacing": "0.04em", "fontWeight": "700" }], "headline-xl-mobile": ["30px", { "lineHeight": "36px", "letterSpacing": "-0.01em", "fontWeight": "700" }], "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600" }], "headline-xl": ["40px", { "lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700" }], "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }] } } } };</script>
+</head>
+
+<body class="bg-background font-body-md text-on-surface antialiased min-h-screen flex flex-col">
+  <header
+    class="fixed top-0 left-0 right-0 z-50 bg-surface-container-lowest border-b border-primary-fixed-dim/40 shadow-[0_1px_8px_rgba(0,0,0,0.03)]">
+    <div class="h-20 max-w-[1280px] mx-auto px-margin flex items-center justify-between gap-space-md">
+      <div class="flex items-center gap-space-lg"><a class="flex items-center gap-space-sm group focus:outline-none"
+          data-path="home" href="#"><img alt="ZeroWaste Logo" class="h-8 w-auto object-contain"
+            src="https://lh3.googleusercontent.com/aida/AEtjO1UTddhgjX8TqURS_W7JFnoF-OPYu2WmpCn9j9y_AWU5My-3u6XEdnRZVOCd-2Y-fZLjAFJmQxUCxaaGsksOSuR4LIcEiG49cO7lAN2bsuyT7xraiCstlMiocPG-4YEP-cyB-95o-EunE47W4uZAj_h3Opptxrum-KE1GFKfvg0MAN_C7vOwQG_0-lJD6ETzZOyjvvd_V5AvC3OOzSDehcj8I2-nejFtdh-OIhvnbWKnLTcaQMnH9yzNXjE"><span
+            class="font-headline-md text-headline-md text-primary tracking-tight">ZeroWaste</span></a>
+        <div class="hidden xl:flex items-center p-space-xs bg-surface-container-low rounded-full"><span
+            class="px-space-sm py-0.5 rounded-full font-label-sm text-label-sm uppercase bg-surface-container-lowest text-primary shadow-[0_1px_3px_0_rgba(30,41,59,0.05)]">Household</span><span
+            class="px-space-sm py-0.5 rounded-full font-label-sm text-label-sm uppercase text-on-surface-variant hover:text-on-surface cursor-pointer transition-colors">Farmer</span><span
+            class="px-space-sm py-0.5 rounded-full font-label-sm text-label-sm uppercase text-on-surface-variant hover:text-on-surface cursor-pointer transition-colors">NGO</span>
+        </div>
+      </div>
+      <nav class="hidden lg:flex items-center gap-space-xs"
+        data-active-classes="bg-primary-container text-on-primary-container font-label-lg rounded-lg"><a
+          class="px-space-sm py-space-xs font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low rounded-lg transition-all"
+          data-path="home" href="#">Home</a><a
+          class="px-space-sm py-space-xs font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low rounded-lg transition-all"
+          data-path="household-portal" href="#">Household Portal</a><a
+          class="px-space-sm py-space-xs font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low rounded-lg transition-all"
+          data-path="farmer-hub" href="#">Farmer Hub</a><a aria-current="page"
+          class="px-space-sm py-space-xs transition-all bg-primary-container text-on-primary-container font-label-lg rounded-lg"
+          data-path="ngo-market" href="#">NGO Market</a><a
+          class="px-space-sm py-space-xs font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low rounded-lg transition-all"
+          data-path="requests-and-pickups" href="#">Requests &amp; Pickups</a></nav>
+      <div class="flex items-center gap-space-sm">
+        <div class="hidden sm:flex items-center gap-1.5 px-space-sm py-1 bg-surface-container-low rounded-full"><span
+            class="w-2 h-2 rounded-full bg-primary animate-pulse"></span><span
+            class="font-label-sm text-label-sm uppercase text-primary">Active Donor</span></div><button
+          aria-label="Notifications"
+          class="p-space-xs rounded-full text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors relative"
+          type="button"><span class="material-symbols-outlined text-[22px]">notifications</span><span
+            class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-tertiary-container"></span></button>
+        <div class="flex items-center gap-space-xs pl-space-xs">
+          <div
+            class="w-8 h-8 rounded-full bg-surface-container-high ring-2 ring-primary-fixed flex items-center justify-center text-on-surface-variant">
+            <span class="material-symbols-outlined text-[20px]">corporate_fare</span></div>
+        </div>
+      </div>
+    </div>
+  </header>
+  <main class="w-full flex-1 pt-20 bg-background">
+    <div class="flex flex-col w-full">
+      <div class="max-w-[1280px] w-full mx-auto px-margin-mobile sm:px-margin pb-space-xl flex flex-col gap-space-lg">
+        <!-- NGO Portal Intro & Control Header -->
+        <div class="flex flex-col lg:flex-row items-start lg:items-end justify-between gap-space-md pt-space-lg">
+          <div class="flex flex-col gap-space-xs max-w-2xl">
+            <div class="flex items-center gap-space-xs"><span
+                class="px-space-sm py-0.5 rounded-full font-label-sm text-label-sm uppercase bg-surface-container-high text-primary tracking-wider">NGO
+                Relief Portal</span><span
+                class="flex items-center gap-1 font-label-sm text-label-sm text-on-surface-variant"><span
+                  class="w-1.5 h-1.5 rounded-full bg-primary-container"></span> Live Status</span></div>
+            <h1 class="font-headline-xl text-headline-xl text-on-surface tracking-tight">NGO Relief Portal</h1>
+            <p class="font-body-md text-body-md text-on-surface-variant">Surplus food discovery, dispatch management,
+              and verified community distribution.</p>
+          </div>
+          <div class="flex items-center gap-space-xs self-stretch lg:self-auto">
+            <button
+              class="px-space-md py-space-xs bg-surface-container-low hover:bg-surface-container text-on-surface font-label-lg text-label-lg rounded-lg shadow-sm transition-all flex items-center gap-space-xs"
+              id="quick-refresh-btn">
+              <span class="material-symbols-outlined text-[18px]">sync</span>
+              <span class="">Refresh Feeds</span>
+            </button>
+            <button
+              class="px-space-md py-space-xs bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg rounded-lg shadow-sm transition-all flex items-center gap-space-xs"
+              onclick="document.getElementById('catalog-section').scrollIntoView({behavior: 'smooth'})">
+              <span class="material-symbols-outlined text-[18px]">add_shopping_cart</span>
+              <span class="">Claim Surplus</span>
+            </button>
+          </div>
+        </div>
+        <!-- Section 1: Strategic Operational KPI Bar -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-space-md">
+          <div
+            class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col justify-between relative overflow-hidden group">
+            <div class="flex items-center justify-between"><span
+                class="font-label-md text-label-md uppercase text-on-surface-variant">Active Requests</span><span
+                class="material-symbols-outlined text-secondary text-[24px]">pending_actions</span></div>
+            <div class="mt-space-md"><span class="font-headline-xl text-headline-xl text-on-surface font-bold">0</span>
+              <p class="font-body-sm text-body-sm text-on-surface-variant mt-1 flex items-center gap-1">No pending
+                requests</p>
+            </div>
+            <div
+              class="absolute -bottom-6 -right-6 w-20 h-20 bg-secondary-fixed/30 rounded-full blur-xl pointer-events-none">
+            </div>
+          </div>
+          <div
+            class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col justify-between relative overflow-hidden group">
+            <div class="flex items-center justify-between"><span
+                class="font-label-md text-label-md uppercase text-on-surface-variant">Awaiting Pickup</span><span
+                class="material-symbols-outlined text-primary-container text-[24px]">local_shipping</span></div>
+            <div class="mt-space-md"><span class="font-headline-xl text-headline-xl text-primary font-bold">0</span>
+              <p class="font-body-sm text-body-sm text-on-surface-variant mt-1 flex items-center gap-1">No active
+                dispatches</p>
+            </div>
+            <div
+              class="absolute -bottom-6 -right-6 w-20 h-20 bg-primary-fixed/40 rounded-full blur-xl pointer-events-none">
+            </div>
+          </div>
+          <div
+            class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col justify-between relative overflow-hidden group">
+            <div class="flex items-center justify-between"><span
+                class="font-label-md text-label-md uppercase text-on-surface-variant">Pickups Completed</span><span
+                class="material-symbols-outlined text-tertiary text-[24px]">task_alt</span></div>
+            <div class="mt-space-md"><span class="font-headline-xl text-headline-xl text-on-surface font-bold">0</span>
+              <p class="font-body-sm text-body-sm text-on-surface-variant mt-1 flex items-center gap-1">Total this month
+              </p>
+            </div>
+            <div
+              class="absolute -bottom-6 -right-6 w-20 h-20 bg-tertiary-fixed/40 rounded-full blur-xl pointer-events-none">
+            </div>
+          </div>
+          <div
+            class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col justify-between relative overflow-hidden group">
+            <div class="flex items-center justify-between"><span
+                class="font-label-md text-label-md uppercase text-on-surface-variant">Rations Distributed</span><span
+                class="material-symbols-outlined text-primary text-[24px]">eco</span></div>
+            <div class="mt-space-md">
+              <div class="flex items-baseline gap-1"><span
+                  class="font-headline-xl text-headline-xl text-on-surface font-bold">0</span><span
+                  class="font-label-lg text-label-lg text-on-surface-variant">kg</span></div>
+              <p class="font-body-sm text-body-sm text-on-surface-variant mt-1 flex items-center gap-1">Total impact</p>
+            </div>
+            <div
+              class="absolute -bottom-6 -right-6 w-20 h-20 bg-primary-fixed-dim/30 rounded-full blur-xl pointer-events-none">
+            </div>
+          </div>
+        </div>
+        <!-- Interactive Filtering & Global Control Strip -->
+        <div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col gap-space-md">
+          <div class="flex flex-col md:flex-row items-center gap-space-sm justify-between">
+            <div class="relative w-full md:w-96 flex items-center">
+              <span
+                class="material-symbols-outlined text-[20px] text-on-surface-variant absolute left-3 pointer-events-none">search</span>
+              <input
+                class="w-full pl-9 pr-4 py-2 bg-surface-container-low rounded-lg font-body-md text-body-md text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:bg-surface-container-lowest focus:shadow-sm transition-all"
+                id="item-search-input" placeholder="Search crops, cooked meals, donor tags..." type="text">
+            </div>
+            <div class="flex items-center gap-space-xs overflow-x-auto w-full md:w-auto pb-1 md:pb-0">
+              <span class="font-label-md text-label-md text-on-surface-variant whitespace-nowrap pl-1">Proximity:</span>
+              <select
+                class="bg-surface-container-low font-body-md text-body-md text-on-surface rounded-lg px-3 py-1.5 focus:outline-none cursor-pointer"
+                id="proximity-filter">
+                <option value="all">Within 25 km (All)</option>
+                <option value="5">Within 5 km</option>
+                <option value="10">Within 10 km</option>
+                <option value="15">Within 15 km</option>
+              </select>
+              <span class="font-label-md text-label-md text-on-surface-variant whitespace-nowrap pl-2">Donation
+                Type:</span>
+              <select
+                class="bg-surface-container-low font-body-md text-body-md text-on-surface rounded-lg px-3 py-1.5 focus:outline-none cursor-pointer"
+                id="pricing-filter">
+                <option value="all">All (Free &amp; Subsidized)</option>
+                <option value="free">Free Only ($0.00)</option>
+                <option value="paid">Subsidized / Nominal Fee</option>
+              </select>
+            </div>
+          </div>
+          <!-- Category Filter Pills -->
+          <div class="flex items-center gap-space-xs flex-wrap pt-space-xs">
+            <span class="font-label-md text-label-md text-on-surface-variant">Food Category:</span>
+            <button
+              class="filter-category-btn px-space-sm py-1 rounded-full font-label-sm text-label-sm uppercase bg-primary text-on-primary shadow-sm transition-all"
+              data-category="all">All Items</button>
+            <button
+              class="filter-category-btn px-space-sm py-1 rounded-full font-label-sm text-label-sm uppercase bg-surface-container-low text-on-surface-variant hover:text-on-surface transition-all"
+              data-category="meals">Prepared Meals</button>
+            <button
+              class="filter-category-btn px-space-sm py-1 rounded-full font-label-sm text-label-sm uppercase bg-surface-container-low text-on-surface-variant hover:text-on-surface transition-all"
+              data-category="crops">Fresh Crops</button>
+            <button
+              class="filter-category-btn px-space-sm py-1 rounded-full font-label-sm text-label-sm uppercase bg-surface-container-low text-on-surface-variant hover:text-on-surface transition-all"
+              data-category="bakery">Bakery</button>
+            <button
+              class="filter-category-btn px-space-sm py-1 rounded-full font-label-sm text-label-sm uppercase bg-surface-container-low text-on-surface-variant hover:text-on-surface transition-all"
+              data-category="dairy">Dairy</button>
+          </div>
+        </div>
+        <!-- Section 2: Catalog of Available Surplus Food & Harvests -->
+        <div class="flex flex-col gap-space-md" id="catalog-section">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="font-headline-lg text-headline-lg text-on-surface">Available Surplus Food &amp; Harvests</h2>
+              <p class="font-body-md text-body-md text-on-surface-variant">Fresh listings needing prompt claiming from
+                household pantries, local green grocers, and regional farm growers.</p>
+            </div>
+            <span
+              class="font-label-sm text-label-sm text-primary uppercase bg-surface-container-low px-space-sm py-1 rounded-full"><span
+                id="active-count-indicator" class="">0</span> Surpluses Open</span>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-space-md" id="catalog-grid">
+            <div
+              class="col-span-1 md:col-span-2 lg:grid-cols-3 bg-surface-container-lowest rounded-xl p-space-xl border border-dashed border-outline-variant flex flex-col items-center justify-center text-center gap-space-sm w-full">
+              <div
+                class="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant mb-space-xs">
+                <span class="material-symbols-outlined text-[32px]">inventory_2</span></div>
+              <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">No surplus food listings available
+                yet</h3>
+              <p class="font-body-md text-body-md text-on-surface-variant max-w-lg">New donations from verified
+                households and local farms will appear here in real time. Check back shortly or broaden your filter
+                criteria.</p><button
+                class="mt-space-sm px-space-md py-2 bg-surface-container-low hover:bg-surface-container text-on-surface font-label-lg text-label-lg rounded-lg shadow-sm transition-all flex items-center gap-space-xs"
+                onclick="document.getElementById('quick-refresh-btn').click()"><span
+                  class="material-symbols-outlined text-[18px]">sync</span><span class="">Refresh Feed</span></button>
+            </div>
+          </div>
+        </div>
+        <!-- Section 3: My Requests & Pickup Workflow Pipeline -->
+        <div class="flex flex-col gap-space-md pt-space-lg">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-space-sm">
+            <div>
+              <h2 class="font-headline-lg text-headline-lg text-on-surface">My Requests &amp; Pickup Workflow Pipeline
+              </h2>
+              <p class="font-body-md text-body-md text-on-surface-variant">Live logistics tracking across approval
+                handshakes, secure dispatch, and physical handoff verification.</p>
+            </div>
+            <div class="flex items-center p-1 bg-surface-container-low rounded-lg">
+              <button
+                class="px-space-md py-1.5 rounded-md font-label-md text-label-md bg-surface-container-lowest text-primary shadow-sm font-semibold transition-all"
+                id="tab-btn-kanban" onclick="switchPipelineView('kanban')">Pipeline View</button>
+              <button
+                class="px-space-md py-1.5 rounded-md font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-all"
+                id="tab-btn-list" onclick="switchPipelineView('list')">List View</button>
+            </div>
+          </div>
+          <!-- Real-world NGO Safety Verification Alert Banner -->
+          <div
+            class="p-space-md rounded-xl bg-surface-container-high flex flex-col md:flex-row items-start md:items-center justify-between gap-space-sm shadow-sm">
+            <div class="flex items-center gap-space-sm">
+              <div class="w-10 h-10 rounded-full bg-tertiary-fixed flex items-center justify-center shrink-0">
+                <span class="material-symbols-outlined text-tertiary text-[22px]">health_and_safety</span>
+              </div>
+              <div>
+                <span class="font-label-md text-label-md text-on-surface font-bold uppercase">Mandatory Safety &amp;
+                  Intake Check:</span>
+                <p class="font-body-md text-body-md text-on-surface-variant">Please verify items in person before
+                  clicking “Confirm Pickup” to mark as Completed. Confirm package seals, cold-chain temperature logs,
+                  and expiration integrity.</p>
+              </div>
+            </div>
+            <a class="font-label-sm text-label-sm uppercase text-primary font-bold hover:underline whitespace-nowrap pl-space-md md:pl-0"
+              href="#">Protocol Checklist →</a>
+          </div>
+          <!-- Kanban Pipeline Columns -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-space-md" id="pipeline-kanban-container">
+            <!-- Column 1: Requested (Awaiting Donor Approval) -->
+            <div class="bg-surface-container-low rounded-xl p-space-md flex flex-col gap-space-sm min-h-[500px]">
+              <div class="flex items-center justify-between pb-space-xs">
+                <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-secondary"></span>
+                  <h3 class="font-headline-sm text-headline-sm text-on-surface">1. Requested</h3>
+                </div><span
+                  class="px-space-sm py-0.5 rounded-full font-label-sm text-label-sm bg-surface-container-highest text-secondary font-bold"
+                  id="badge-count-requested">0 Items</span>
+              </div><span class="font-body-sm text-body-sm text-on-surface-variant mb-space-xs">Waiting for donor to
+                review request and lock reservation.</span>
+              <div
+                class="flex-1 flex flex-col items-center justify-center p-space-lg text-center border border-dashed border-outline-variant/60 rounded-xl">
+                <span
+                  class="material-symbols-outlined text-[32px] text-on-surface-variant/70 mb-2">hourglass_empty</span>
+                <p class="font-label-md text-label-md text-on-surface-variant font-semibold">No requests waiting review
+                </p>
+                <p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Items claimed from the surplus catalog
+                  will appear here.</p>
+              </div>
+            </div>
+            <!-- Column 2: Accepted (Pickup Address Revealed & Active) -->
+            <div class="bg-surface-container-low rounded-xl p-space-md flex flex-col gap-space-sm min-h-[500px]">
+              <div class="flex items-center justify-between pb-space-xs">
+                <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-primary-container"></span>
+                  <h3 class="font-headline-sm text-headline-sm text-on-surface">2. Accepted &amp; Pickup Ready</h3>
+                </div><span
+                  class="px-space-sm py-0.5 rounded-full font-label-sm text-label-sm bg-surface-container-highest text-primary font-bold"
+                  id="badge-count-accepted">0 Dispatches</span>
+              </div><span class="font-body-sm text-body-sm text-on-surface-variant mb-space-xs">Donor approved! Address
+                unlocked. Coordinate transport.</span>
+              <div
+                class="flex-1 flex flex-col items-center justify-center p-space-lg text-center border border-dashed border-outline-variant/60 rounded-xl">
+                <span
+                  class="material-symbols-outlined text-[32px] text-on-surface-variant/70 mb-2">local_shipping</span>
+                <p class="font-label-md text-label-md text-on-surface-variant font-semibold">No pickups ready for
+                  dispatch</p>
+                <p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Donor approvals will unlock collection
+                  addresses here.</p>
+              </div>
+            </div>
+            <!-- Column 3: Completed (Verified Receipts & Audit History) -->
+            <div class="bg-surface-container-low rounded-xl p-space-md flex flex-col gap-space-sm min-h-[500px]">
+              <div class="flex items-center justify-between pb-space-xs">
+                <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-outline"></span>
+                  <h3 class="font-headline-sm text-headline-sm text-on-surface">3. Completed Archive</h3>
+                </div><span
+                  class="px-space-sm py-0.5 rounded-full font-label-sm text-label-sm bg-surface-container-highest text-on-surface-variant font-bold"
+                  id="badge-count-completed">0 Verified</span>
+              </div><span class="font-body-sm text-body-sm text-on-surface-variant mb-space-xs">Digitally signed
+                chain-of-custody transfer records.</span>
+              <div
+                class="flex-1 flex flex-col items-center justify-center p-space-lg text-center border border-dashed border-outline-variant/60 rounded-xl">
+                <span class="material-symbols-outlined text-[32px] text-on-surface-variant/70 mb-2">verified</span>
+                <p class="font-label-md text-label-md text-on-surface-variant font-semibold">No archived pickups yet</p>
+                <p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Completed handoffs and signed
+                  certificates will archive here.</p>
+              </div>
+            </div>
+          </div>
+          <!-- Alternative Pipeline List View (Hidden by default, toggled via tabs) -->
+          <div class="hidden bg-surface-container-lowest rounded-xl shadow-sm p-space-md overflow-x-auto"
+            id="pipeline-list-container">
+            <table class="w-full text-left font-body-md text-body-md">
+              <thead>
+                <tr class="bg-surface-container-low text-on-surface font-label-md text-label-md uppercase">
+                  <th class="p-space-md rounded-l-lg">Item Title</th>
+                  <th class="p-space-md">Stage</th>
+                  <th class="p-space-md">Donor Source</th>
+                  <th class="p-space-md">Location / Action</th>
+                  <th class="p-space-md rounded-r-lg text-right">Verification</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-surface-container">
+                <tr>
+                  <td class="p-space-lg text-center text-on-surface-variant font-body-md" colspan="5">No active requests
+                    or dispatches currently in the pipeline.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <!-- Live Toast Dispatch Notification Element -->
+        <div
+          class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-inverse-surface text-inverse-on-surface px-space-md py-space-sm rounded-xl shadow-xl flex items-center gap-space-sm max-w-md"
+          id="toast-notification">
+          <span class="material-symbols-outlined text-primary-fixed text-[24px]" id="toast-icon">check_circle</span>
+          <div class="flex flex-col">
+            <span class="font-label-md text-label-md font-bold" id="toast-title">Action Confirmed</span>
+            <span class="font-body-sm text-body-sm text-surface-variant" id="toast-body">Request payload processed
+              successfully.</span>
+          </div>
+        </div>
+      </div>
+      <!-- Reusable Details Modal Backdrop & Container -->
+      <div
+        class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm transition-opacity"
+        id="item-details-modal">
+        <div
+          class="bg-surface-container-lowest rounded-xl max-w-lg w-full p-space-lg shadow-xl flex flex-col gap-space-md relative animate-in fade-in zoom-in-95 duration-200">
+          <div class="flex items-start justify-between">
+            <div class="flex flex-col">
+              <span class="font-label-sm text-label-sm uppercase text-primary font-bold">Perishable Item Dossier</span>
+              <h3 class="font-headline-md text-headline-md text-on-surface mt-1" id="modal-title">Item Title</h3>
+            </div>
+            <button
+              class="p-1 rounded-full text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors"
+              onclick="closeDetailsModal()">
+              <span class="material-symbols-outlined text-[20px]">close</span>
+            </button>
+          </div>
+          <div class="flex flex-col gap-space-sm text-on-surface font-body-md text-body-md">
+            <div class="grid grid-cols-2 gap-space-xs bg-surface-container-low p-space-md rounded-lg">
+              <div>
+                <span class="font-label-sm text-label-sm uppercase text-on-surface-variant">Donor</span>
+                <p class="font-semibold text-on-surface" id="modal-donor">Donor Name</p>
+              </div>
+              <div>
+                <span class="font-label-sm text-label-sm uppercase text-on-surface-variant">Location Proximity</span>
+                <p class="font-semibold text-on-surface" id="modal-dist">3.2 km</p>
+              </div>
+              <div class="mt-2">
+                <span class="font-label-sm text-label-sm uppercase text-on-surface-variant">Rate Type</span>
+                <p class="font-semibold text-primary" id="modal-price">Free</p>
+              </div>
+              <div class="mt-2">
+                <span class="font-label-sm text-label-sm uppercase text-on-surface-variant">Freshness Window</span>
+                <p class="font-semibold text-tertiary" id="modal-freshness">Fresh</p>
+              </div>
+            </div>
+            <div>
+              <span class="font-label-sm text-label-sm uppercase text-on-surface-variant">Inventory Packaging &amp;
+                Notes</span>
+              <p class="mt-1 font-body-sm text-body-sm text-on-surface" id="modal-packaging">Crates details.</p>
+            </div>
+            <div>
+              <span class="font-label-sm text-label-sm uppercase text-on-surface-variant">Handler / Safety
+                Instructions</span>
+              <p class="mt-1 font-body-sm text-body-sm text-on-surface-variant" id="modal-notes">Cold chain
+                requirements.</p>
+            </div>
+          </div>
+          <div class="flex items-center justify-end gap-space-xs pt-space-xs">
+            <button
+              class="px-space-md py-2 bg-surface-container-low hover:bg-surface-container text-on-surface font-label-lg text-label-lg rounded-lg transition-all"
+              onclick="closeDetailsModal()">Close</button>
+            <button
+              class="px-space-md py-2 bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg rounded-lg shadow-sm transition-all"
+              id="modal-claim-btn">Submit Request Now</button>
+          </div>
+        </div>
+      </div>
+      <!-- Route Map Preview Modal -->
+      <div class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm"
+        id="map-modal">
+        <div
+          class="bg-surface-container-lowest rounded-xl max-w-lg w-full p-space-lg shadow-xl flex flex-col gap-space-md relative">
+          <div class="flex items-center justify-between">
+            <div>
+              <span class="font-label-sm text-label-sm uppercase text-secondary font-bold">Field Dispatch Map</span>
+              <h3 class="font-headline-sm text-headline-sm text-on-surface" id="map-modal-title">Location Details</h3>
+            </div>
+            <button class="p-1 rounded-full text-on-surface-variant hover:text-on-surface" onclick="closeMapModal()">
+              <span class="material-symbols-outlined text-[20px]">close</span>
+            </button>
+          </div>
+          <div class="w-full h-56 rounded-xl overflow-hidden bg-surface-container relative" id="map-canvas-container">
+            <div class="w-full h-full bg-cover bg-center" data-location="Seattle, Washington"
+              style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCb-Pq4HiygB_4dl8fn8HvqCKoxzSYdNk3RAg2EgjLkcmR9rAoQMYq8NT9vN_huXPrYxDspwmze4oM7pYLBDt7Wc1DEQGAbKQOwzltux-p1dhWv4aGkmN55uwIal0YvlIztSRjSdRQ3FmOwqNLCGV6ONT0YLCCA7D6IZ4MwqNgPNNy6B360c-OUyEruj5ykxWazR-X4v5uNzcajEI8mGtFmJqNsp6a0UiIfQSaigHnaezV9yA1sRpsZ')">
+            </div>
+            <div
+              class="absolute bottom-3 left-3 bg-surface-container-lowest/90 backdrop-blur-md px-3 py-1.5 rounded-lg text-xs font-semibold text-on-surface shadow-sm flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-primary text-[16px]">navigation</span>
+              <span id="map-address-display" class="">Address label</span>
+            </div>
+          </div>
+          <div class="flex items-center justify-end gap-space-xs">
+            <button
+              class="px-space-md py-2 bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg rounded-lg shadow-sm transition-all"
+              onclick="closeMapModal()">Dismiss</button>
+          </div>
+        </div>
+      </div>
+      <!-- Verified Certificate Proof Modal -->
+      <div class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm"
+        id="cert-modal">
+        <div
+          class="bg-surface-container-lowest rounded-xl max-w-md w-full p-space-lg shadow-xl flex flex-col gap-space-md relative">
+          <div class="flex items-center justify-between pb-space-xs">
+            <div class="flex items-center gap-space-xs">
+              <span class="material-symbols-outlined text-primary text-[28px]">verified_user</span>
+              <div>
+                <h3 class="font-headline-sm text-headline-sm text-on-surface">Intake Certificate</h3>
+                <span class="font-label-sm text-label-sm uppercase text-primary font-bold"
+                  id="cert-number-display">#ZW-0000</span>
+              </div>
+            </div>
+            <button class="p-1 rounded-full text-on-surface-variant hover:text-on-surface" onclick="closeCertModal()">
+              <span class="material-symbols-outlined text-[20px]">close</span>
+            </button>
+          </div>
+          <div
+            class="bg-surface-container-low p-space-md rounded-lg flex flex-col gap-2 font-body-sm text-body-sm text-on-surface">
+            <div class="flex justify-between">
+              <span class="text-on-surface-variant">Allocated Cargo:</span>
+              <span class="font-semibold text-on-surface text-right" id="cert-item-text">Items</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-on-surface-variant">Origin Source:</span>
+              <span class="font-semibold text-on-surface" id="cert-origin-text">Farm</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-on-surface-variant">NGO Intake Agent:</span>
+              <span class="font-semibold text-on-surface" id="cert-agent-text">Name</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-on-surface-variant">Verified Timestamp:</span>
+              <span class="font-semibold text-on-surface" id="cert-time-text">Time</span>
+            </div>
+            <div class="mt-2 pt-2 flex items-center justify-between font-label-sm text-label-sm uppercase text-primary">
+              <span class="">Good Samaritan Act Safe Handoff:</span>
+              <span class="font-bold">Compliant • Signed</span>
+            </div>
+          </div>
+          <button
+            class="w-full py-2 bg-surface-container hover:bg-surface-container-high text-on-surface font-label-lg text-label-lg rounded-lg transition-all"
+            onclick="closeCertModal()">Close Dossier</button>
+        </div>
+      </div>
+    </div>
+    <script>
+      // Filter and Category Search State Management
+      const searchInput = document.getElementById('item-search-input');
+      const proximitySelect = document.getElementById('proximity-filter');
+      const pricingSelect = document.getElementById('pricing-filter');
+      const categoryButtons = document.querySelectorAll('.filter-category-btn');
+      const catalogCards = document.querySelectorAll('.catalog-item');
+      const activeCountIndicator = document.getElementById('active-count-indicator');
+
+      let currentCategory = 'all';
+
+      function applyFilters() {
+        const searchTerm = (searchInput.value || '').toLowerCase().trim();
+        const maxProximity = proximitySelect.value === 'all' ? Infinity : parseFloat(proximitySelect.value);
+        const selectedPricing = pricingSelect.value;
+
+        let visibleCount = 0;
+
+        catalogCards.forEach(card => {
+          const itemText = card.textContent.toLowerCase();
+          const cardCategory = card.dataset.category;
+          const cardPricing = card.dataset.pricing;
+          const cardDist = parseFloat(card.dataset.dist || '0');
+
+          const matchesSearch = !searchTerm || itemText.includes(searchTerm);
+          const matchesCategory = currentCategory === 'all' || cardCategory === currentCategory;
+          const matchesProximity = cardDist <= maxProximity;
+          const matchesPricing = selectedPricing === 'all' || cardPricing === selectedPricing;
+
+          if (matchesSearch && matchesCategory && matchesProximity && matchesPricing) {
+            card.classList.remove('hidden');
+            visibleCount++;
+          } else {
+            card.classList.add('hidden');
+          }
+        });
+
+        if (activeCountIndicator) {
+          activeCountIndicator.textContent = visibleCount;
+        }
+      }
+
+      categoryButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          categoryButtons.forEach(b => {
+            b.classList.remove('bg-primary', 'text-on-primary');
+            b.classList.add('bg-surface-container-low', 'text-on-surface-variant');
+          });
+          btn.classList.add('bg-primary', 'text-on-primary');
+          btn.classList.remove('bg-surface-container-low', 'text-on-surface-variant');
+          currentCategory = btn.dataset.category;
+          applyFilters();
+        });
+      });
+
+      searchInput.addEventListener('input', applyFilters);
+      proximitySelect.addEventListener('change', applyFilters);
+      pricingSelect.addEventListener('change', applyFilters);
+
+      // View Switcher (Kanban vs List)
+      function switchPipelineView(viewType) {
+        const kanban = document.getElementById('pipeline-kanban-container');
+        const list = document.getElementById('pipeline-list-container');
+        const kanbanBtn = document.getElementById('tab-btn-kanban');
+        const listBtn = document.getElementById('tab-btn-list');
+
+        if (viewType === 'kanban') {
+          kanban.classList.remove('hidden');
+          list.classList.add('hidden');
+          kanbanBtn.classList.add('bg-surface-container-lowest', 'text-primary', 'shadow-sm', 'font-semibold');
+          kanbanBtn.classList.remove('text-on-surface-variant');
+          listBtn.classList.remove('bg-surface-container-lowest', 'text-primary', 'shadow-sm', 'font-semibold');
+          listBtn.classList.add('text-on-surface-variant');
+        } else {
+          kanban.classList.add('hidden');
+          list.classList.remove('hidden');
+          listBtn.classList.add('bg-surface-container-lowest', 'text-primary', 'shadow-sm', 'font-semibold');
+          listBtn.classList.remove('text-on-surface-variant');
+          kanbanBtn.classList.remove('bg-surface-container-lowest', 'text-primary', 'shadow-sm', 'font-semibold');
+          kanbanBtn.classList.add('text-on-surface-variant');
+        }
+      }
+
+      // Toast System
+      function showToast(title, message, isSuccess = true) {
+        const toast = document.getElementById('toast-notification');
+        const toastTitle = document.getElementById('toast-title');
+        const toastBody = document.getElementById('toast-body');
+        const toastIcon = document.getElementById('toast-icon');
+
+        toastTitle.textContent = title;
+        toastBody.textContent = message;
+        toastIcon.textContent = isSuccess ? 'check_circle' : 'info';
+        toastIcon.className = `material-symbols-outlined text-[24px] ${isSuccess ? 'text-primary-fixed' : 'text-secondary-fixed'}`;
+
+        toast.classList.remove('translate-y-20', 'opacity-0');
+        toast.classList.add('translate-y-0', 'opacity-100');
+
+        setTimeout(() => {
+          toast.classList.remove('translate-y-0', 'opacity-100');
+          toast.classList.add('translate-y-20', 'opacity-0');
+        }, 3800);
+      }
+
+      // Request & Claim Action Micro-interaction
+      function requestDonation(itemTitle, donorName) {
+        showToast('Claim Requested', `Donation request logged for ${itemTitle} from ${donorName}. Waiting donor acceptance.`);
+      }
+
+      // Cancel Request Action
+      function cancelRequest(buttonElement) {
+        const card = buttonElement.closest('.bg-surface-container-lowest');
+        if (card) {
+          card.remove();
+          showToast('Request Withdrawn', 'Surplus reservation released back to public catalog.', false);
+          const reqCount = document.getElementById('badge-count-requested');
+          if (reqCount) reqCount.textContent = '1 Items';
+        }
+      }
+
+      // Confirm Pickup Workflow
+      function confirmPickup(cardId, itemName, donorLocation, contactPerson) {
+        const targetCard = document.getElementById(cardId);
+        if (!targetCard) return;
+
+        const certCode = 'ZW-' + Math.floor(1000 + Math.random() * 9000);
+        const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        // Remove from Accepted
+        targetCard.remove();
+
+        // Append to Completed
+        const completedList = document.getElementById('completed-items-list');
+        const newRecord = document.createElement('div');
+        newRecord.className = 'bg-surface-container-lowest p-space-md rounded-lg shadow-sm flex flex-col gap-space-xs animate-in fade-in duration-300';
+        newRecord.innerHTML = `
+      <div class="flex items-center justify-between">
+        <span class="px-space-sm py-0.5 rounded-full font-label-sm text-label-sm uppercase bg-surface-container text-on-surface-variant font-bold">Distributed</span>
+        <span class="font-body-sm text-body-sm text-on-surface-variant">Just Now, ${nowTime}</span>
+      </div>
+      <h4 class="font-headline-sm text-headline-sm text-on-surface">${itemName}</h4>
+      <p class="font-body-sm text-body-sm text-on-surface-variant">${donorLocation} &bull; Verified by Dispatcher (You)</p>
+      
+      <div class="flex items-center justify-between pt-space-xs">
+        <span class="font-label-sm text-label-sm text-primary flex items-center gap-1 font-semibold">
+          <span class="material-symbols-outlined text-[16px]">verified_user</span> Certificate #${certCode}
+        </span>
+        <button onclick="viewCertificate('${certCode}', '${itemName}', '${donorLocation}', 'Field Dispatcher', 'Today, ${nowTime}')" class="font-label-sm text-label-sm text-secondary hover:underline">View Proof</button>
+      </div>
+    `;
+
+        completedList.prepend(newRecord);
+
+        const badgeAcc = document.getElementById('badge-count-accepted');
+        const badgeComp = document.getElementById('badge-count-completed');
+        if (badgeAcc) badgeAcc.textContent = '1 Dispatch';
+        if (badgeComp) badgeComp.textContent = '39 Verified';
+
+        showToast('Pickup Confirmed & Completed!', `${itemName} inspected, logged, and certified for hunger distribution.`);
+      }
+
+      // Modals Management
+      function openDetailsModal(donor, title, packaging, dist, price, freshness, notes) {
+        document.getElementById('modal-title').textContent = title;
+        document.getElementById('modal-donor').textContent = donor;
+        document.getElementById('modal-packaging').textContent = packaging;
+        document.getElementById('modal-dist').textContent = dist;
+        document.getElementById('modal-price').textContent = price;
+        document.getElementById('modal-freshness').textContent = freshness;
+        document.getElementById('modal-notes').textContent = notes;
+
+        const claimBtn = document.getElementById('modal-claim-btn');
+        claimBtn.onclick = function () {
+          requestDonation(title, donor);
+          closeDetailsModal();
+        };
+
+        const modal = document.getElementById('item-details-modal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      }
+
+      function closeDetailsModal() {
+        const modal = document.getElementById('item-details-modal');
+        modal.classList.remove('flex');
+        modal.classList.add('hidden');
+      }
+
+      function openMapModal(title, address) {
+        document.getElementById('map-modal-title').textContent = title;
+        document.getElementById('map-address-display').textContent = address;
+        const modal = document.getElementById('map-modal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      }
+
+      function closeMapModal() {
+        const modal = document.getElementById('map-modal');
+        modal.classList.remove('flex');
+        modal.classList.add('hidden');
+      }
+
+      function viewCertificate(certId, item, origin, agent, time) {
+        document.getElementById('cert-number-display').textContent = '#' + certId;
+        document.getElementById('cert-item-text').textContent = item;
+        document.getElementById('cert-origin-text').textContent = origin;
+        document.getElementById('cert-agent-text').textContent = agent;
+        document.getElementById('cert-time-text').textContent = time;
+
+        const modal = document.getElementById('cert-modal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      }
+
+      function closeCertModal() {
+        const modal = document.getElementById('cert-modal');
+        modal.classList.remove('flex');
+        modal.classList.add('hidden');
+      }
+
+      document.getElementById('quick-refresh-btn').addEventListener('click', function () {
+        this.classList.add('opacity-75');
+        showToast('Feeds Updated', 'Fetched newest perishables from 14 regional nodes.');
+        setTimeout(() => this.classList.remove('opacity-75'), 600);
+      });
+    </script>
+  </main>
+  <footer class="w-full bg-surface-container-low mt-auto">
+    <div class="max-w-[1280px] mx-auto px-margin py-space-xl">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-space-lg mb-space-lg">
+        <div class="md:col-span-2 flex flex-col gap-space-sm">
+          <div class="flex items-center gap-space-xs"><img alt="ZeroWaste Logo" class="h-6 w-auto object-contain"
+              src="https://lh3.googleusercontent.com/aida/AEtjO1UTddhgjX8TqURS_W7JFnoF-OPYu2WmpCn9j9y_AWU5My-3u6XEdnRZVOCd-2Y-fZLjAFJmQxUCxaaGsksOSuR4LIcEiG49cO7lAN2bsuyT7xraiCstlMiocPG-4YEP-cyB-95o-EunE47W4uZAj_h3Opptxrum-KE1GFKfvg0MAN_C7vOwQG_0-lJD6ETzZOyjvvd_V5AvC3OOzSDehcj8I2-nejFtdh-OIhvnbWKnLTcaQMnH9yzNXjE"><span
+              class="font-headline-sm text-headline-sm text-primary">ZeroWaste</span></div>
+          <p class="font-body-md text-body-md text-on-surface-variant max-w-md">A community-driven perishable inventory
+            routing and redistribution network. Bridging surpluses from households and local farms directly to food
+            banks and families in need.</p>
+          <div class="inline-flex items-center gap-space-xs mt-space-xs"><span
+              class="px-space-sm py-0.5 rounded-full font-label-sm text-label-sm uppercase bg-surface-container-high text-on-surface">Capstone
+              Engineering Project</span><span class="font-body-sm text-body-sm text-on-surface-variant">Dept. of
+              Computer Science &amp; Community Tech</span></div>
+        </div>
+        <div class="flex flex-col gap-space-xs"><span
+            class="font-label-md text-label-md uppercase text-on-surface mb-space-xs">Platform Links</span><a
+            class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors"
+            data-path="household-portal" href="#">Household Donors</a><a
+            class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors"
+            data-path="farmer-hub" href="#">Farmer Crop Surplus</a><a
+            class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors"
+            data-path="ngo-market" href="#">NGO Distribution Queue</a><a
+            class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors"
+            data-path="requests-and-pickups" href="#">Active Pickups</a></div>
+        <div class="flex flex-col gap-space-xs"><span
+            class="font-label-md text-label-md uppercase text-on-surface mb-space-xs">Safety &amp; Compliance</span><a
+            class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="#">Food
+            Quality Standards</a><a
+            class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors"
+            href="#">Cold-Chain Protocols</a><a
+            class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="#">Good
+            Samaritan Act Info</a><a
+            class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors"
+            href="#">Privacy &amp; Terms</a></div>
+      </div>
+      <div
+        class="pt-space-md flex flex-col sm:flex-row items-center justify-between gap-space-sm font-body-sm text-body-sm text-on-surface-variant">
+        <p class="">© 2025 ZeroWaste Initiative. Built for sustainable circular food logistics.</p>
+        <p class="text-outline">Non-commercial collegiate prototype • Open Food Network Compatible</p>
+      </div>
+    </div>
+  </footer>
+
+</body>
+
+</html>

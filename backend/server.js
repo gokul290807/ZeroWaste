@@ -150,7 +150,7 @@ function sanitizeDonationForViewer(donation, requestingUser) {
 // Register new user
 app.post("/api/register", async function (req, res) {
     try {
-        const { name, email, password, role, contactNumber, address } = req.body;
+        const { name, email, password, role, contactNumber } = req.body;
 
         if (!name || !email || !password || !role) {
             return res.status(400).json({
@@ -199,7 +199,7 @@ app.post("/api/register", async function (req, res) {
             password: hashedPassword,
             role: cleanRole,
             contactNumber: cleanContact,
-            address: address ? address.trim() : ""
+            address: ""
         });
 
         await newUser.save();
